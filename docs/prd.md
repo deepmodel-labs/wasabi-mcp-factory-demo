@@ -5,7 +5,7 @@
 | **Status** | Approved for build, 2026-11-19 |
 | **Starting point** | This PRD, README, licence and dmx setup only. No code. |
 | **Owner** | DeepModel |
-| **Repository** | deepmodel-ai/wasabi-mcp-factory-demo |
+| **Repository** | deepmodel-labs/wasabi-mcp-factory-demo |
 | **Sources** | Wasabi's public documentation only (see [References](#12-references)) |
 
 ## 1. Summary

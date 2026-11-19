@@ -18,10 +18,10 @@ test_command:        uv run ruff check . && uv run ruff format --check . && uv r
 
 ## GitHub
 
-owner:          deepmodel-ai
+owner:          deepmodel-labs
 repo:           wasabi-mcp-factory-demo
 github_access:  gh   # mcp (GitHub MCP server) or gh (gh CLI)
 
 ## GitHub Issues
 
-github_username:  deepmodel-ai
+github_username:  deepmodel-labs

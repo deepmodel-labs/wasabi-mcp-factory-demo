@@ -19,7 +19,7 @@ The full tool catalogue is in [docs/prd.md](docs/prd.md). Status: in progress. T
 You'll need Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-git clone https://github.com/deepmodel-ai/wasabi-mcp-factory-demo
+git clone https://github.com/deepmodel-labs/wasabi-mcp-factory-demo
 cd wasabi-mcp-factory-demo
 uv sync
 WASABI_ACCESS_KEY_ID=… WASABI_SECRET_ACCESS_KEY=… uv run wasabi-mcp
