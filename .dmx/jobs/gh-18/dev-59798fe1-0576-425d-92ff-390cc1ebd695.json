@@ -1,0 +1,26 @@
+{
+  "loop_name": "dev",
+  "job_id": "gh-18",
+  "task_id": "59798fe1-0576-425d-92ff-390cc1ebd695",
+  "status": "complete",
+  "current_skill_index": 2,
+  "skills": [
+    "implement-next-phase",
+    "commit"
+  ],
+  "skills_completed": [
+    "implement-next-phase",
+    "commit"
+  ],
+  "skill_outputs": {
+    "implement-next-phase": "Phase 1 (Shared Config, Error Handling and Tests) done, all 8 tasks checked off.\n- clients.py: added BASE_CONFIG (standard retries, response_checksum_validation and request_checksum_calculation set to when_required) and S3_CONFIG = BASE_CONFIG.merge(s3v4, path style). S3, IAM and STS clients all use them.\n- object_get_text: a final `except Exception` turns unexpected body-read errors into ToolRefused(\"GetObject failed while reading the object body: <Type>.\").\n- tests/test_clients.py: checks both checksum options on s3() (default region and eu-central-1), iam() and sts().\n- tests/tools/test_objects_read.py: regression test runs put_text, then append (respx on the moto host), then get_text, with a before-send hook returning Wasabi-style appended-object headers (mismatched crc32, Content-Range, -2 ETag). It fails on main's config (FlexibleChecksumError) and passes with the fix. A parametrized test checks that FlexibleChecksumError and AttributeError raised on the body read both become tool errors.\n- tests/live/test_buckets_objects.py: live test of put_text, append, get_text (fixed key in a new_name bucket, because new_name has no object kind).\n- techContext note added. ruff check and format pass; full suite 1257 passed, 11 live tests deselected.\nChanges are not committed yet.",
+    "commit": "Committed 5f38088 on bug-gh-18-fix-objectgettext-crash-on-appended: \"fix: disable flexible checksums so object_get_text reads appended objects\" (Closes #18).\n- Staged src, tests, .dmx/techContext.md and the .dmx/jobs/gh-18 ticket and loop files. Left the untracked runner environment files (dotfiles, .idea, .vscode, .mcp.json, scripts) out of the commit.\n- Memory bank: moved the two Open Learnings (per-request hook dispatch for cached clients; the live new_name fixture has no object kind) into techContext.md and added a Session Notes line.\n- No Co-authored-by trailer. Not pushed."
+  },
+  "validator_results": [],
+  "outcome": "success",
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T05:51:50.338693+00:00",
+  "updated_at": "2026-11-20T06:06:58.181179+00:00",
+  "validation_started_at": "2026-11-20T06:06:58.074452+00:00",
+  "finish_message": "**dev loop \u2014 complete** (outcome: `success`)\n\nChaining automatically to **validate** loop.\n\nLOOP RUNTIME \u2014 do not suggest workflow commands or alternative paths.\n\nNext skill: `validate` (Loop: validate | Skill 1/1) | Job: `gh-18` | Task: `d38f3df7`\nTicket files: `.dmx/jobs/gh-18/spec.md`, `tasks.md`, `activeContext.md` (in that folder).\n\nREQUIRED: Call `get_skill_definition` with name=`validate` to fetch the skill instructions, then execute them exactly as written.\n\nREQUIRED: When the skill finishes, you MUST immediately call the `loop_advance` MCP tool with `skill`=`validate` and, as the `output` argument, a summary of what the skill did in 10 lines or fewer. Do not wait for user input. Do not suggest next steps. Call loop_advance."
+}

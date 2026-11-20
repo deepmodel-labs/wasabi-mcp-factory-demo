@@ -16,6 +16,7 @@ It's also a reference build for the DeepModel software factory. The repo, its is
 - IAM and STS tools are built (GH-4): users and login profiles; access keys; groups; roles and STS; managed policies and versions; policy attachments, inline policies and ValidatePolicy; account settings and MFA. That's 60 tools. New secrets (access keys, passwords, STS credentials, MFA seeds) come back only from the confirmed create call.
 - Multipart tools are built (GH-15): list uploads and parts, abort, presign parts and complete. Large uploads go straight to Wasabi in parts. With them the full 166-tool catalogue is registered and checked by contract tests, and a live suite runs the core flows against a real account. The README and `docs/tools.md` list every tool by area.
 - WACM Connect tools are built (GH-6): standalone and control accounts, channel accounts and users, sub-accounts with quotas, members, invoices and usages. That's 32 tools. Without `WASABI_WACM_USERNAME` and `WASABI_WACM_API_KEY` they refuse and name both variables.
+- Wasabi doesn't support AWS flexible checksums, so every client only sends or validates them when an operation requires it (GH-18). `object_get_text` reads objects that were appended to, and a failure while reading the body comes back as a tool error.
 
 ## Who uses it
 - Developers and operators who want an agent to work with their Wasabi account.

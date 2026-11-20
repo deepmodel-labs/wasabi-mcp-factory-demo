@@ -302,8 +302,9 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
         args = {"Bucket": bucket, "Key": key, "Range": f"bytes=0-{max_bytes}"}
         if version_id:
             args["VersionId"] = version_id
+        client = _s3(ctx, bucket, region)
         try:
-            response = _s3(ctx, bucket, region).get_object(**args)
+            response = client.get_object(**args)
             body: bytes = response["Body"].read()
         except ClientError as exc:
             if exc.response.get("Error", {}).get("Code") != "InvalidRange":
@@ -312,6 +313,11 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
             response, body = {"ContentLength": 0}, b""
         except BotoCoreError as exc:
             raise explain(exc, "GetObject") from exc
+        except Exception as exc:
+            # A botocore bug while streaming the body must not reach the client unhandled.
+            raise ToolRefused(
+                f"GetObject failed while reading the object body: {type(exc).__name__}."
+            ) from exc
         size = _total_size(response)
         truncated = len(body) > max_bytes
         text = _decode_text(body[:max_bytes], truncated)

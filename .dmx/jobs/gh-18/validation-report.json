@@ -1,0 +1,21 @@
+{
+  "commit": "06dea5ea02be5aaeb66447291c6cd4796d090314",
+  "scope_items": [
+    {"item": "A unit test checks that every Wasabi boto3 client created through clients.py has response_checksum_validation='when_required' and request_checksum_calculation='when_required'.", "verdict": "covered", "evidence": "src/wasabi_mcp/clients.py:15-22; tests/test_clients.py:41-46"},
+    {"item": "A regression test with a mocked GetObject that copies Wasabi's response for an appended object shows object_get_text returning the original text followed by the appended text, with no exception.", "verdict": "covered", "evidence": "tests/tools/test_objects_read.py:193-255 (fails with FlexibleChecksumError on main's clients.py, passes on branch)"},
+    {"item": "object_get_text on a plain, never-appended object still returns the right text, and the existing object put/get tests still pass.", "verdict": "covered", "evidence": "full suite at HEAD: 1258 passed, 11 deselected; ruff check/format clean"},
+    {"item": "If botocore raises an error, object_get_text returns a clear tool error and no unhandled exception reaches the MCP client.", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_read.py:305-320; tests/tools/test_objects_read.py:271-295 and :180-182 (region lookup error kept)"},
+    {"item": "A live-marked test in tests/live/ runs object_put_text, object_append, then object_get_text, and is skipped when WASABI_LIVE is not set to 1.", "verdict": "covered", "evidence": "tests/live/test_buckets_objects.py:68-74"},
+    {"item": "Scope: shared BASE_CONFIG in clients.py merged into S3 config and used for IAM/STS", "verdict": "covered", "evidence": "src/wasabi_mcp/clients.py:15-58"},
+    {"item": "Scope: techContext note on Wasabi flexible checksums", "verdict": "covered", "evidence": ".dmx/techContext.md:41-42"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Region lookup (GetBucketLocation) failure keeps its clear error outside the GetObject catch-all", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_read.py:305; tests/tools/test_objects_read.py:180-182"},
+    {"description": "BotoCoreError (FlexibleChecksumError) on body read becomes a tool error", "addressed": true, "evidence": "tests/tools/test_objects_read.py:271-295"},
+    {"description": "Unexpected AttributeError on body read becomes a tool error without leaking secrets", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_read.py:316-320; tests/tools/test_objects_read.py:295"},
+    {"description": "Empty object InvalidRange handling preserved", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_read.py:309-313"},
+    {"description": "Cached clients: before-send hooks added after first client use", "addressed": true, "evidence": "tests/tools/test_objects_read.py:219-238"}
+  ]
+}

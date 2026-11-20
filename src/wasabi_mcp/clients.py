@@ -12,6 +12,15 @@ from wasabi_mcp.config import Settings
 # IAM and STS are global services signed for us-east-1.
 GLOBAL_REGION = "us-east-1"
 
+# Wasabi doesn't support AWS flexible checksums, so only send or validate them when
+# an operation requires it. Every client is built from this config.
+BASE_CONFIG = Config(
+    retries={"mode": "standard"},
+    response_checksum_validation="when_required",
+    request_checksum_calculation="when_required",
+)
+S3_CONFIG = BASE_CONFIG.merge(Config(signature_version="s3v4", s3={"addressing_style": "path"}))
+
 
 class Clients:
     """Lazily created boto3 clients, one per service (and per region for S3)."""
@@ -38,19 +47,12 @@ class Clients:
     def s3(self, region: str | None = None) -> Any:
         """An S3 client using path-style addressing on ``region``'s endpoint."""
         name = region or self.settings.region
-        config = Config(
-            retries={"mode": "standard"},
-            signature_version="s3v4",
-            s3={"addressing_style": "path"},
-        )
-        return self._client("s3", name, self.settings.s3_endpoint_for(name), config)
+        return self._client("s3", name, self.settings.s3_endpoint_for(name), S3_CONFIG)
 
     def iam(self) -> Any:
         """An IAM client signed for us-east-1."""
-        config = Config(retries={"mode": "standard"})
-        return self._client("iam", GLOBAL_REGION, self.settings.iam_url, config)
+        return self._client("iam", GLOBAL_REGION, self.settings.iam_url, BASE_CONFIG)
 
     def sts(self) -> Any:
         """An STS client signed for us-east-1."""
-        config = Config(retries={"mode": "standard"})
-        return self._client("sts", GLOBAL_REGION, self.settings.sts_url, config)
+        return self._client("sts", GLOBAL_REGION, self.settings.sts_url, BASE_CONFIG)

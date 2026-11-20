@@ -36,3 +36,11 @@ def test_client_configuration(settings):
     assert s3.meta.config.retries["mode"] == "standard"
     assert clients.iam().meta.region_name == "us-east-1"
     assert clients.sts().meta.region_name == "us-east-1"
+
+
+def test_every_client_only_uses_flexible_checksums_when_required(settings):
+    # Wasabi doesn't support AWS flexible checksums (issue 18).
+    clients = Clients(settings)
+    for client in (clients.s3(), clients.s3("eu-central-1"), clients.iam(), clients.sts()):
+        assert client.meta.config.response_checksum_validation == "when_required"
+        assert client.meta.config.request_checksum_calculation == "when_required"
