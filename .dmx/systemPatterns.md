@@ -11,3 +11,6 @@ There's no code yet. The architecture to build is in `docs/prd.md` section 4 (th
 - **Reference group:** `tools/meta.py` (`server_info`) is the example to copy for a new group module. `ToolRefused` subclasses the SDK's `ToolError`, so its message is what the client sees.
 - **Secret checks in tests:** `tests/conftest.py` uses recognisable fake credentials and exposes `SECRETS`, so tests can assert that no secret appears in a tool's output.
 - **Parallel tickets:** tickets 1–23 add only their own module(s), test file(s) and `docs/tools/<module>.md`. They never edit shared files.
+- **Tool error text in tests:** the MCP SDK prefixes tool errors with `Error executing tool <name>: `, so tests that check an exact message use `endswith` (or `match`).
+- **Region lookup in respx tests:** respx only patches httpx, so boto3's GetBucketLocation can't be mocked with it. Create the bucket in a region on moto, and mock the moto host with respx for the `signed_s3` call.
+- **Wasabi MOVE:** the `Destination` header is the bare destination key or prefix (as in Wasabi's object operations docs), not a URL. Compose bodies are `<ComposeRequest><Component><Key>…</Key></Component>…</ComposeRequest>`.
