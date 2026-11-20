@@ -1,0 +1,30 @@
+{
+  "commit": "d0a0e42c7bf8e4ab47a0ef5e2e2f08c2f690b3e1",
+  "scope_items": [
+    {"item": "config.py: optional secrets_dir from WASABI_MCP_SECRETS_DIR (unset/empty -> None, ~ expanded, absolute)", "verdict": "covered", "evidence": "src/wasabi_mcp/config.py:37,58,76; tests/test_config.py:102-118"},
+    {"item": "_secrets.prepare: create dir 0700, refuse group/world-accessible with chmod 700 hint, refuse non-writable or non-directory, before the Wasabi call", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/_secrets.py:29-67; tests/tools/test_secrets_helper.py"},
+    {"item": "_secrets.write: O_CREAT|O_EXCL 0600 file with token_hex name, JSON, fsync; failure names the created resource", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/_secrets.py:70-99; tests/tools/test_secrets_helper.py"},
+    {"item": "iam_access_key_create writes secret to file, returns key ID, user, status, create date, secrets_file", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_keys.py:61-77; tests/tools/test_iam_keys.py"},
+    {"item": "iam_login_profile_create writes password to file, returns user, create date, reset flag, secrets_file", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_users.py:242-264; tests/tools/test_iam_users.py:345-397"},
+    {"item": "iam_mfa_virtual_device_create writes Base32 seed and base64 QR PNG to one JSON file, returns only serial and path", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_account.py:228-252; tests/tools/test_iam_account.py"},
+    {"item": "sts_assume_role / sts_session_token write credentials to file, return key ID, expiry, assumed role user, path", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_roles.py:62-72,231-295; tests/tools/test_iam_roles.py"},
+    {"item": "wacm_sub_account_create writes keys to file, returns scrubbed sub_account, access key ID, path", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/wacm_sub_accounts.py:107-137; tests/tools/test_wacm_sub_accounts.py"},
+    {"item": "AC: with dir set, each tool writes a new 0600 file holding the secret (MFA: seed + PNG)", "verdict": "covered", "evidence": "tests/tools/secrets_support.py:44-51 (read_secrets_file asserts 0600/0700) used in all five tool test files"},
+    {"item": "AC: with dir set, no secret value appears in the result; result has path and non-secret identifiers", "verdict": "covered", "evidence": "tests/tools/secrets_support.py:31-40,54-58 (call_with_text + assert_absent over structured_content and content)"},
+    {"item": "AC: with dir unset, each tool's result is unchanged", "verdict": "covered", "evidence": "*_without_secrets_dir_* tests in test_iam_keys/users/account/roles.py; existing wacm tests unchanged and passing"},
+    {"item": "AC: missing dir created 0700; 0755 or non-writable dir refused with fix message and mocked API never called", "verdict": "covered", "evidence": "tests/tools/secrets_support.py:61-76 UNUSABLE_DIRS with empty Stubber (IAM/STS) and respx call_count == 0 (WACM)"},
+    {"item": "AC: two calls create two different files, neither overwrites an existing file", "verdict": "covered", "evidence": "tests/tools/test_iam_keys.py (twice_writes_two_files, names_the_key_when_the_file_cant_be_written); tests/tools/test_secrets_helper.py"},
+    {"item": "server_info reports secrets_dir_enabled boolean only", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/meta.py:35; tests/test_server.py:34"},
+    {"item": "README documents WASABI_MCP_SECRETS_DIR and both modes; PRD section 7 row; tool docs updated and docs/tools.md regenerated", "verdict": "covered", "evidence": "README.md:59-74; docs/prd.md:530; docs/tools/*.md; tests/test_docs.py:59"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Secret write fails after the Wasabi call (e.g. name collision, dir removed): error names the created resource, no secret in the message, partial file removed", "addressed": true, "evidence": "src/wasabi_mcp/tools/_secrets.py:79-99; tests/tools/test_iam_keys.py (names_the_key_when_the_file_cant_be_written)"},
+    {"description": "Pre-existing file or symlink at the target path is never overwritten (O_EXCL)", "addressed": true, "evidence": "src/wasabi_mcp/tools/_secrets.py:80; tests/tools/test_secrets_helper.py (write_never_overwrites_an_existing_file)"},
+    {"description": "Secrets path exists but is a regular file", "addressed": true, "evidence": "src/wasabi_mcp/tools/_secrets.py:50-54; tests/tools/test_secrets_helper.py (prepare_refuses_a_file)"},
+    {"description": "WACM response without keys in secrets-dir mode writes no file and returns secrets_file None", "addressed": true, "evidence": "src/wasabi_mcp/tools/wacm_sub_accounts.py:124-137; tests/tools/test_wacm_sub_accounts.py (create_without_returned_keys_writes_no_file)"},
+    {"description": "Relative and ~ paths resolved to absolute at settings load; empty value treated as unset", "addressed": true, "evidence": "src/wasabi_mcp/config.py:37-40; tests/test_config.py:102-118"},
+    {"description": "Directory permissions change between prepare() and write() (TOCTOU) are not rechecked; files are still 0600 so exposure is limited", "addressed": true, "evidence": "src/wasabi_mcp/tools/_secrets.py:29-80"}
+  ]
+}

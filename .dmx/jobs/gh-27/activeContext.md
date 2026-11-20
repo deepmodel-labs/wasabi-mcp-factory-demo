@@ -10,3 +10,6 @@
 - Wired WASABI_MCP_SECRETS_DIR into the six credential-creating tools with per-tool tests — Phase 2 complete.
 - dev loop iterating (round 2) — repeat_until 'all_phases_complete' not yet met (job `gh-27`).
 - Documented WASABI_MCP_SECRETS_DIR in README, PRD section 7 and tool docs; regenerated docs/tools.md — Phase 3 complete, all phases done.
+- dev loop completed (outcome: success) — chained to validate (job `gh-27`).
+- PR opened for: Add optional WASABI_MCP_SECRETS_DIR to keep new secrets out of tool results.
+- validate loop completed (outcome: success) — chained to release (job `gh-27`).
