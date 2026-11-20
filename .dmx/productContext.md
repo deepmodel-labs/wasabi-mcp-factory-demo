@@ -13,6 +13,8 @@ It's also a reference build for the DeepModel software factory. The repo, its is
 - `object_delete_many` refuses an empty prefix, so a batch delete can't empty a whole bucket by accident.
 - Bucket and bucket-configuration tools are built (GH-3): buckets; policy and ACLs; CORS and lifecycle; Object Lock, retention and legal hold; logging and inventory; replication and backfill. That's 40 tools.
 - Object and presigned-URL tools are built (GH-7): list, versions, head, search, text get (truncated at `max_bytes`, at most 1 MiB) and text put (at most 1 MiB), copy, delete, tags and metadata, plus `presign_get`, `presign_put` and `presign_get_for_prefix`. Presigned URLs use the endpoint for the bucket's region.
+- IAM and STS tools are built (GH-4): users and login profiles; access keys; groups; roles and STS; managed policies and versions; policy attachments, inline policies and ValidatePolicy; account settings and MFA. That's 60 tools. New secrets (access keys, passwords, STS credentials, MFA seeds) come back only from the confirmed create call.
+- WACM Connect tools are built (GH-6): standalone and control accounts, channel accounts and users, sub-accounts with quotas, members, invoices and usages. That's 32 tools. Without `WASABI_WACM_USERNAME` and `WASABI_WACM_API_KEY` they refuse and name both variables.
 
 ## Who uses it
 - Developers and operators who want an agent to work with their Wasabi account.
