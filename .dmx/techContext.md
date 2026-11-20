@@ -20,3 +20,4 @@
 - Never log or return the configured credentials.
 - The factory runner can't write `.github/` (it's mounted as /dev/null). Changes to `.github/workflows/ci.yml` go to a maintainer: put the exact YAML in the job folder and the PR description.
 - A ranged GetObject on an empty object fails with `InvalidRange`; treat that as an empty body.
+- moto 5.2.5 has no GetObjectRetention handler (it returns 500) and doesn't enforce `x-amz-bypass-governance-retention`. Test those paths by patching `Clients._client` to register botocore `before-call` (canned response) or `before-send` (header capture) hooks; respx can't intercept boto3.
