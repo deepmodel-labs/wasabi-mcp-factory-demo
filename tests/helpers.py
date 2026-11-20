@@ -18,7 +18,7 @@ def _text(content: list[Any]) -> str:
     return "\n".join(item.text for item in content if isinstance(item, TextContent))
 
 
-async def call(server: MCPServer, name: str, **arguments: Any) -> Any:
+async def call(server: MCPServer, name: str, /, **arguments: Any) -> Any:
     """Call tool ``name`` and return its structured result.
 
     A ``{"result": ...}`` wrapper (used for non-dict return types) is unwrapped. Raises
