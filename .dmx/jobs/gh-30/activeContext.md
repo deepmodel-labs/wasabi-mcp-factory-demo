@@ -11,3 +11,4 @@
 - dev loop completed (outcome: success) — chained to validate (job `gh-30`).
 - validate loop completed (outcome: success) — chained to release (job `gh-30`).
 - PR opened for: Create the object when object_append targets a missing key on Wasabi.
+- release loop completed (outcome: success) (job `gh-30`).
