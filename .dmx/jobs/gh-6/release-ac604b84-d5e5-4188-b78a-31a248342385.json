@@ -1,0 +1,24 @@
+{
+  "loop_name": "release",
+  "job_id": "gh-6",
+  "task_id": "ac604b84-d5e5-4188-b78a-31a248342385",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "prune-jobs",
+    "create-pr"
+  ],
+  "skills_completed": [
+    "prune-jobs"
+  ],
+  "skill_outputs": {
+    "prune-jobs": "No finished jobs to remove. All other jobs (gh-1, gh-3, gh-4, gh-5, gh-8) finished under 30 days ago; gh-6 is the current ticket. No jobs kept for open learnings or decisions."
+  },
+  "validator_results": [],
+  "outcome": null,
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T02:36:55.765345+00:00",
+  "updated_at": "2026-11-20T02:37:45.708399+00:00",
+  "validation_started_at": null,
+  "finish_message": null
+}
