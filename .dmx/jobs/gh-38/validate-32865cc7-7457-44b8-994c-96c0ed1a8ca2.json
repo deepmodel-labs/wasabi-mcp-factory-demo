@@ -1,0 +1,58 @@
+{
+  "loop_name": "validate",
+  "job_id": "gh-38",
+  "task_id": "32865cc7-7457-44b8-994c-96c0ed1a8ca2",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "validate"
+  ],
+  "skills_completed": [
+    "validate"
+  ],
+  "skill_outputs": {
+    "validate": "Validated branch at 550b3b8 against origin/main. Verdict: READY FOR PR.\nTasks 8/8 complete; all 5 acceptance criteria covered (read-only cap for presign_get and presign_get_for_prefix, no note at <=3600, 7-day URL kept outside read-only mode, docstrings/docs/README Safety updated).\nNo scope creep, no regressions, no critical code-quality or security findings.\nruff check, ruff format --check and pytest (1451 passed) all green.\nWrote .dmx/jobs/gh-38/validation-report.json."
+  },
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "Tests passed \u2014 ran `uv run ruff check . && uv run ruff format --check . && uv run pytest -q` (exit 0)",
+      "checks": [
+        {
+          "name": "tests_pass",
+          "pass": true,
+          "message": "........................................................................ [ 14%]\n........................................................................ [ 19%]\n........................................................................ [ 24%]\n........................................................................ [ 29%]\n........................................................................ [ 34%]\n........................................................................ [ 39%]\n........................................................................ [ 44%]\n........................................................................ [ 49%]\n........................................................................ [ 54%]\n........................................................................ [ 59%]\n........................................................................ [ 64%]\n........................................................................ [ 69%]\n........................................................................ [ 74%]\n........................................................................ [ 79%]\n........................................................................ [ 84%]\n........................................................................ [ 89%]\n........................................................................ [ 94%]\n........................................................................ [ 99%]\n...........                                                              [100%]\n1451 passed, 13 deselected in 527.38s (0:08:47)"
+        }
+      ],
+      "tool": "run_tests"
+    },
+    {
+      "pass": true,
+      "message": "Spec adherence check passed",
+      "checks": [
+        {
+          "name": "scope_matches_spec",
+          "pass": true,
+          "message": "All 6 scope item(s) covered in the diff"
+        },
+        {
+          "name": "edge_cases_addressed",
+          "pass": true,
+          "message": "All 4 flagged edge case(s) addressed"
+        },
+        {
+          "name": "no_regressions",
+          "pass": true,
+          "message": "No regressions found in the diff"
+        }
+      ],
+      "tool": "spec_adherence"
+    }
+  ],
+  "outcome": "success",
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T13:13:36.516726+00:00",
+  "updated_at": "2026-11-20T13:33:02.266513+00:00",
+  "validation_started_at": "2026-11-20T13:24:07.397929+00:00",
+  "finish_message": "**validate loop \u2014 complete** (outcome: `success`)\n\nChaining automatically to **release** loop.\n\nLOOP RUNTIME \u2014 do not suggest workflow commands or alternative paths.\n\nNext skill: `prune-jobs` (Loop: release | Skill 1/2) | Job: `gh-38` | Task: `62fc4b39`\nTicket files: `.dmx/jobs/gh-38/spec.md`, `tasks.md`, `activeContext.md` (in that folder).\n\nREQUIRED: Call `get_skill_definition` with name=`prune-jobs` to fetch the skill instructions, then execute them exactly as written.\n\nREQUIRED: When the skill finishes, you MUST immediately call the `loop_advance` MCP tool with `skill`=`prune-jobs` and, as the `output` argument, a summary of what the skill did in 10 lines or fewer. Do not wait for user input. Do not suggest next steps. Call loop_advance."
+}

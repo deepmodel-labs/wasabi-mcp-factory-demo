@@ -1,0 +1,19 @@
+{
+  "commit": "550b3b80cb926da57952dfe600040db4204733ce",
+  "scope_items": [
+    {"item": "In read-only mode, presign_get with expires_seconds=604800 produces a URL expiring in <=3600s; result has expires_seconds=3600, expires_at ~now+3600, and a cap note", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/transfer.py:43-51,118-133; tests/tools/test_transfer.py:170-180"},
+    {"item": "In read-only mode, presign_get_for_prefix applies the same cap and reports the same fields for every URL (top-level, matching existing shape)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/transfer.py:179,202,210-219; tests/tools/test_transfer.py:183-197"},
+    {"item": "In read-only mode, a request at or under 3600 seconds is honored as asked, with no cap note", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/transfer.py:46-47; tests/tools/test_transfer.py:200-209"},
+    {"item": "Outside read-only mode, presign_get with expires_seconds=604800 still produces a 7-day URL (no regression)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/transfer.py:46; tests/tools/test_transfer.py:219-224"},
+    {"item": "Both tools' descriptions and the README Safety section mention the 3600-second read-only cap", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/transfer.py:114-117,174-178; README.md:116; docs/tools/transfer.md:3-9; docs/tools.md:74-76"},
+    {"item": "Out-of-range values (60-604,800) still refused in both modes", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/transfer.py:45; tests/tools/test_transfer.py:212-216"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Request exactly 3600 in read-only mode is not clamped and gets no note", "addressed": true, "evidence": "src/wasabi_mcp/tools/transfer.py:46; tests/tools/test_transfer.py:200"},
+    {"description": "Invalid expiry (>604800) in read-only mode is refused rather than silently clamped", "addressed": true, "evidence": "src/wasabi_mcp/tools/transfer.py:45; tests/tools/test_transfer.py:212-216"},
+    {"description": "clean() keeps None values, so note is added only when set rather than passed as None", "addressed": true, "evidence": "src/wasabi_mcp/tools/transfer.py:131-132,217-218"},
+    {"description": "Prefix tool with multiple items: every item URL signed with the capped value", "addressed": true, "evidence": "src/wasabi_mcp/tools/transfer.py:202; tests/tools/test_transfer.py:194-195"}
+  ]
+}
