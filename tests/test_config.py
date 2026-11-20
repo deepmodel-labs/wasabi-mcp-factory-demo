@@ -97,3 +97,22 @@ def test_credentials_are_absent_from_repr():
 def test_settings_are_frozen():
     with pytest.raises(dataclasses.FrozenInstanceError):
         Settings().read_only = False  # type: ignore[misc]
+
+
+def test_secrets_dir_is_unset_by_default():
+    assert Settings.from_env({}).secrets_dir is None
+    assert Settings.from_env({"WASABI_MCP_SECRETS_DIR": "  "}).secrets_dir is None
+
+
+def test_secrets_dir_expands_home(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    settings = Settings.from_env({"WASABI_MCP_SECRETS_DIR": "~/secrets"})
+    assert settings.secrets_dir == (tmp_path / "secrets").resolve()
+
+
+def test_relative_secrets_dir_becomes_absolute(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    settings = Settings.from_env({"WASABI_MCP_SECRETS_DIR": "out/secrets"})
+    assert settings.secrets_dir is not None
+    assert settings.secrets_dir.is_absolute()
+    assert settings.secrets_dir == (tmp_path / "out" / "secrets").resolve()

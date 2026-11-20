@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from pathlib import Path
 
 DEFAULT_REGION = "us-east-1"
 DEFAULT_IAM_URL = "https://iam.wasabisys.com"
@@ -33,6 +34,12 @@ def _optional(env: Mapping[str, str], name: str) -> str | None:
     return value or None
 
 
+def _optional_dir(env: Mapping[str, str], name: str) -> Path | None:
+    """An optional directory path: ``~`` expanded and made absolute."""
+    value = _optional(env, name)
+    return Path(value).expanduser().resolve() if value else None
+
+
 @dataclass(frozen=True)
 class Settings:
     """Server configuration. Credentials are kept out of ``repr``."""
@@ -48,6 +55,7 @@ class Settings:
     sts_endpoint: str | None = None
     stats_endpoint: str | None = None
     wacm_endpoint: str | None = None
+    secrets_dir: Path | None = None
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> Settings:
@@ -65,6 +73,7 @@ class Settings:
             sts_endpoint=_optional(source, "WASABI_STS_ENDPOINT"),
             stats_endpoint=_optional(source, "WASABI_STATS_ENDPOINT"),
             wacm_endpoint=_optional(source, "WASABI_WACM_ENDPOINT"),
+            secrets_dir=_optional_dir(source, "WASABI_MCP_SECRETS_DIR"),
         )
 
     def s3_endpoint_for(self, region: str | None = None) -> str:
