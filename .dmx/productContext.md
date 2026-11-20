@@ -19,6 +19,7 @@ It's also a reference build for the DeepModel software factory. The repo, its is
 - WACM Connect tools are built (GH-6): standalone and control accounts, channel accounts and users, sub-accounts with quotas, members, invoices and usages. That's 32 tools. Without `WASABI_WACM_USERNAME` and `WASABI_WACM_API_KEY` they refuse and name both variables.
 - Wasabi doesn't support AWS flexible checksums, so every client only sends or validates them when an operation requires it (GH-18). `object_get_text` reads objects that were appended to, and a failure while reading the body comes back as a tool error.
 - `object_append` to a key that doesn't exist creates the object with the text and returns `created: true` (`false` on a normal append) (GH-30). Only `NoSuchKey` triggers the create; Wasabi has no conditional create, so a concurrent writer can race with it (accepted).
+- The streamable-HTTP transport stays on loopback unless the operator opts in (GH-19). A non-loopback `--host` needs `--allow-remote` and a `WASABI_MCP_HTTP_TOKEN` bearer token that every request must send (401 otherwise); `Host` headers are always checked against the bound host, loopback, `--allowed-host` and `WASABI_MCP_ALLOWED_HOSTS`. This broke earlier unauthenticated non-loopback setups.
 
 ## Who uses it
 - Developers and operators who want an agent to work with their Wasabi account.
