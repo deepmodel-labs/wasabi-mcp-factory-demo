@@ -12,3 +12,4 @@
 - validate loop completed (outcome: success) — chained to release (job `gh-8`).
 - Merged main (T1 #3) into the branch; resolved the append-only conflict in systemPatterns.md by keeping both bullet sets.
 - PR opened for: Add Wasabi S3 extension tools for objects and compliance.
+- release loop completed (outcome: success) (job `gh-8`).
