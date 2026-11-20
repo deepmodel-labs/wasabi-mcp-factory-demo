@@ -3,22 +3,47 @@
   "job_id": "gh-36",
   "task_id": "f876f2d6-1b0c-4f8b-b873-a404f7d4342d",
   "status": "complete",
-  "current_skill_index": 1,
+  "current_skill_index": 2,
   "skills": [
     "prune-jobs",
     "create-pr"
   ],
   "skills_completed": [
-    "prune-jobs"
+    "prune-jobs",
+    "create-pr"
   ],
   "skill_outputs": {
-    "prune-jobs": "No finished jobs to remove. All other jobs finished less than 30 days ago; gh-36 is the current ticket. No commit made."
+    "prune-jobs": "No finished jobs to remove. All other jobs finished less than 30 days ago; gh-36 is the current ticket. No commit made.",
+    "create-pr": "PR created: https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/pull/37 (base main, title \"Bug | #36 Hide Unexpected Exception Text from Clients at the server.py Tool Boundary\", dmx default title format; no repo convention found).\nTicket: gh-36 labelled in-review (bug kept).\nMemory: added gh-36 notes to productContext.md (client-facing unexpected-error behaviour) and techContext.md (mcp 2.3.0 crash logging / configure_logging); snapshot_loop_for_pr run; committed cf998ac \"chore: sync memory bank for gh-36\" and pushed.\nNo open learnings/decisions in activeContext.md; no components in repo."
   },
-  "validator_results": [],
-  "outcome": null,
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "PR ready check passed",
+      "checks": [
+        {
+          "name": "pr_exists",
+          "pass": true,
+          "message": "PR open: https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/pull/37"
+        },
+        {
+          "name": "ticket_transitioned",
+          "pass": true,
+          "message": "Ticket 'gh-36' transition not verified \u2014 requires ticketing API access. Confirm manually or override this validator for automated checking."
+        },
+        {
+          "name": "memory_updated",
+          "pass": true,
+          "message": "Memory bank files updated in the latest commit"
+        }
+      ],
+      "tool": "check_pr_ready"
+    }
+  ],
+  "outcome": "success",
   "iteration_count": 0,
   "timestamp": "2026-11-20T12:45:17.959148+00:00",
-  "updated_at": "2026-11-20T12:46:07.546829+00:00",
-  "validation_started_at": null,
-  "finish_message": null
+  "updated_at": "2026-11-20T12:47:10.473919+00:00",
+  "validation_started_at": "2026-11-20T12:47:06.513128+00:00",
+  "finish_message": "**release loop \u2014 complete \u2713**\n\nJob: `gh-36` | Outcome: `success`"
 }
