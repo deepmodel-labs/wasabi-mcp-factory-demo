@@ -1,26 +1,99 @@
 {
-  "commit": "685acb1a36fbc61b4c45718e567a48929af64847",
+  "commit": "3749681cb70fadf00d2f22b75147a4be4dedf619",
   "scope_items": [
-    {"item": "New flags --allow-remote (store_true) and repeatable --allowed-host", "verdict": "covered", "evidence": "src/wasabi_mcp/server.py main(): parser.add_argument('--allow-remote'), parser.add_argument('--allowed-host', action='append')"},
-    {"item": "New env vars WASABI_MCP_HTTP_TOKEN and WASABI_MCP_ALLOWED_HOSTS (comma-separated, trimmed, empties ignored)", "verdict": "covered", "evidence": "src/wasabi_mcp/server.py TOKEN_ENV, ALLOWED_HOSTS_ENV, split_hosts(); tests/test_http_security.py::test_extra_allowed_hosts_from_flag_and_env"},
-    {"item": "Non-loopback streamable-http host fails fast via parser.error naming --allow-remote or WASABI_MCP_HTTP_TOKEN, before build_server/uvicorn", "verdict": "covered", "evidence": "src/wasabi_mcp/server.py main() parser.error calls; tests/test_http_security.py::test_non_loopback_host_refused_without_allow_remote, ::test_allow_remote_refused_without_token (no_start fixture)"},
-    {"item": "Loopback hosts (127.0.0.0/8, ::1, localhost) behave as today without flag or token", "verdict": "covered", "evidence": "src/wasabi_mcp/server.py is_loopback_host(); tests/test_http_security.py::test_loopback_host_starts_without_token, ::test_default_loopback_served_without_token"},
-    {"item": "DNS-rebinding protection always on via explicit TransportSecuritySettings with allowed_hosts/allowed_origins", "verdict": "covered", "evidence": "src/wasabi_mcp/server.py http_app(); tests/test_http_security.py::test_host_not_allowed_gets_421, ::test_allowed_origin_accepted_and_foreign_origin_refused"},
-    {"item": "Bearer-token ASGI middleware wrapping whole app, only when remote allowed; 401 + WWW-Authenticate: Bearer; hmac.compare_digest; lifespan passes through; token never logged", "verdict": "covered", "evidence": "src/wasabi_mcp/server.py BearerTokenMiddleware; tests/test_http_security.py::test_request_without_valid_token_gets_401, ::test_request_with_token_reaches_mcp_app, ::test_token_never_logged_or_printed"},
-    {"item": "Run path: testable http_app() served with uvicorn.run instead of server.run", "verdict": "covered", "evidence": "src/wasabi_mcp/server.py main(): uvicorn.run(app, host=..., port=...)"},
-    {"item": "Tests in tests/test_http_security.py (refusals, 401s on /mcp and unknown path, token reaches app, 421 for foreign Host, defaults and extra hosts accepted, token not logged)", "verdict": "covered", "evidence": "tests/test_http_security.py (234 lines); full suite 1376 passed"},
-    {"item": "README Remote HTTP section (flags, env vars, defaults, reverse-proxy example, breaking-change note) and Configuration table rows", "verdict": "covered", "evidence": "README.md ### Remote HTTP, Configuration table rows, Safety bullet"},
-    {"item": "docs/prd.md section 7 lists both env vars; tests/test_docs.py count 12 -> 14", "verdict": "covered", "evidence": "docs/prd.md section 7 table; tests/test_docs.py:59"},
-    {"item": "Memory bank note on the HTTP security pattern in .dmx/systemPatterns.md", "verdict": "covered", "evidence": ".dmx/systemPatterns.md 'HTTP transport security' bullet"}
+    {
+      "item": "New flags --allow-remote (store_true) and repeatable --allowed-host",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/server.py main(): parser.add_argument('--allow-remote'), parser.add_argument('--allowed-host', action='append')"
+    },
+    {
+      "item": "New env vars WASABI_MCP_HTTP_TOKEN and WASABI_MCP_ALLOWED_HOSTS (comma-separated, trimmed, empties ignored)",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/server.py TOKEN_ENV, ALLOWED_HOSTS_ENV, split_hosts(); tests/test_http_security.py::test_extra_allowed_hosts_from_flag_and_env"
+    },
+    {
+      "item": "Non-loopback streamable-http host fails fast via parser.error naming --allow-remote or WASABI_MCP_HTTP_TOKEN, before build_server/uvicorn",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/server.py main() parser.error calls; tests/test_http_security.py::test_non_loopback_host_refused_without_allow_remote, ::test_allow_remote_refused_without_token (no_start fixture)"
+    },
+    {
+      "item": "Loopback hosts (127.0.0.0/8, ::1, localhost) behave as today without flag or token",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/server.py is_loopback_host(); tests/test_http_security.py::test_loopback_host_starts_without_token, ::test_default_loopback_served_without_token"
+    },
+    {
+      "item": "DNS-rebinding protection always on via explicit TransportSecuritySettings with allowed_hosts/allowed_origins",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/server.py http_app(); tests/test_http_security.py::test_host_not_allowed_gets_421, ::test_allowed_origin_accepted_and_foreign_origin_refused"
+    },
+    {
+      "item": "Bearer-token ASGI middleware wrapping whole app, only when remote allowed; 401 + WWW-Authenticate: Bearer; hmac.compare_digest; lifespan passes through; token never logged",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/server.py BearerTokenMiddleware; tests/test_http_security.py::test_request_without_valid_token_gets_401, ::test_request_with_token_reaches_mcp_app, ::test_token_never_logged_or_printed"
+    },
+    {
+      "item": "Run path: testable http_app() served with uvicorn.run instead of server.run",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/server.py main(): uvicorn.run(app, host=..., port=...)"
+    },
+    {
+      "item": "Tests in tests/test_http_security.py (refusals, 401s on /mcp and unknown path, token reaches app, 421 for foreign Host, defaults and extra hosts accepted, token not logged)",
+      "verdict": "covered",
+      "evidence": "tests/test_http_security.py (234 lines); full suite 1376 passed"
+    },
+    {
+      "item": "README Remote HTTP section (flags, env vars, defaults, reverse-proxy example, breaking-change note) and Configuration table rows",
+      "verdict": "covered",
+      "evidence": "README.md ### Remote HTTP, Configuration table rows, Safety bullet"
+    },
+    {
+      "item": "docs/prd.md section 7 lists both env vars; tests/test_docs.py count 12 -> 14",
+      "verdict": "covered",
+      "evidence": "docs/prd.md section 7 table; tests/test_docs.py:59"
+    },
+    {
+      "item": "Memory bank note on the HTTP security pattern in .dmx/systemPatterns.md",
+      "verdict": "covered",
+      "evidence": ".dmx/systemPatterns.md 'HTTP transport security' bullet"
+    },
+    {
+      "item": "Rework round 1: bring branch up to date with main, keep both sides of .dmx/techContext.md with no duplicated bullets, no code changes",
+      "verdict": "covered",
+      "evidence": "merge commit 85cb486; .dmx/techContext.md:30-32 (gh-28 ValidatePolicy bullets + single mcp 2.3.0 HTTP transport bullet); no conflict markers in repo"
+    }
   ],
   "scope_creep": [],
   "regressions": [],
   "edge_cases": [
-    {"description": "Empty or whitespace-only WASABI_MCP_HTTP_TOKEN treated as unset", "addressed": true, "evidence": "src/wasabi_mcp/server.py main() .strip() or None; tests/test_http_security.py::test_allow_remote_refused_without_token"},
-    {"description": "Malformed Authorization headers (no scheme, 'Bearer' with no credentials, wrong scheme, token suffix)", "addressed": true, "evidence": "tests/test_http_security.py::test_request_without_valid_token_gets_401 parametrisation"},
-    {"description": "Bare and bracketed IPv6 hosts normalised to [v6] / [v6]:*", "addressed": true, "evidence": "src/wasabi_mcp/server.py _normalise_host(); tests/test_http_security.py::test_allowed_hosts_normalised"},
-    {"description": "Lifespan scope passes through the middleware so the session manager starts", "addressed": true, "evidence": "src/wasabi_mcp/server.py BearerTokenMiddleware.__call__; TestClient context in tests"},
-    {"description": "Websocket scopes bypass the bearer check (no websocket route exists today, connection is refused by the router)", "addressed": true, "evidence": "src/wasabi_mcp/server.py BearerTokenMiddleware.__call__ (scope['type'] != 'http'); verified websocket_connect('/mcp') is refused"},
-    {"description": "Non-loopback --host with stdio transport is unaffected", "addressed": true, "evidence": "src/wasabi_mcp/server.py main() returns early for stdio"}
+    {
+      "description": "Empty or whitespace-only WASABI_MCP_HTTP_TOKEN treated as unset",
+      "addressed": true,
+      "evidence": "src/wasabi_mcp/server.py main() .strip() or None; tests/test_http_security.py::test_allow_remote_refused_without_token"
+    },
+    {
+      "description": "Malformed Authorization headers (no scheme, 'Bearer' with no credentials, wrong scheme, token suffix)",
+      "addressed": true,
+      "evidence": "tests/test_http_security.py::test_request_without_valid_token_gets_401 parametrisation"
+    },
+    {
+      "description": "Bare and bracketed IPv6 hosts normalised to [v6] / [v6]:*",
+      "addressed": true,
+      "evidence": "src/wasabi_mcp/server.py _normalise_host(); tests/test_http_security.py::test_allowed_hosts_normalised"
+    },
+    {
+      "description": "Lifespan scope passes through the middleware so the session manager starts",
+      "addressed": true,
+      "evidence": "src/wasabi_mcp/server.py BearerTokenMiddleware.__call__; TestClient context in tests"
+    },
+    {
+      "description": "Websocket scopes bypass the bearer check (no websocket route exists today, connection is refused by the router)",
+      "addressed": true,
+      "evidence": "src/wasabi_mcp/server.py BearerTokenMiddleware.__call__ (scope['type'] != 'http'); verified websocket_connect('/mcp') is refused"
+    },
+    {
+      "description": "Non-loopback --host with stdio transport is unaffected",
+      "addressed": true,
+      "evidence": "src/wasabi_mcp/server.py main() returns early for stdio"
+    }
   ]
 }
