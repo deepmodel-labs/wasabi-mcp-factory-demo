@@ -1,0 +1,24 @@
+{
+  "loop_name": "release",
+  "job_id": "gh-1",
+  "task_id": "e4197e46-fe52-472b-ae9c-075d45352c47",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "prune-jobs",
+    "create-pr"
+  ],
+  "skills_completed": [
+    "prune-jobs"
+  ],
+  "skill_outputs": {
+    "prune-jobs": "No finished jobs to remove. (gh-1 kept as the current ticket; no other jobs.)"
+  },
+  "validator_results": [],
+  "outcome": null,
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T00:19:36.083859+00:00",
+  "updated_at": "2026-11-20T00:20:53.346776+00:00",
+  "validation_started_at": null,
+  "finish_message": null
+}

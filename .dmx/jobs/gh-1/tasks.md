@@ -1,0 +1,37 @@
+# Tasks: Foundation: project, config, safety guards, request helpers, test harness and CI (PRD ticket 0)
+
+**Spec:** `.dmx/jobs/gh-1/spec.md`
+**Branch:** feature-gh-1-foundation-project-config-safety-guards
+**Ticket:** [gh-1](https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/issues/1)
+**Status:** In Progress
+
+---
+
+## Phase 1: Project Setup and Core Modules
+- [x] Add `pyproject.toml`: Python >=3.12, hatchling, `src/` layout, deps `mcp>=2.3,<3`, `boto3`, `httpx`; dev group `pytest`, `pytest-asyncio`, `moto[server]`, `respx`, `ruff`; script `wasabi-mcp = wasabi_mcp.server:main`; pytest (`asyncio_mode = "auto"`, `testpaths = ["tests"]`, `live` marker, `addopts = "-m 'not live'"`); ruff (`line-length = 100`, `target-version = "py312"`)
+- [x] Run `uv lock` / `uv sync` and commit `uv.lock`; check the installed `mcp` SDK's `MCPServer`, `ToolAnnotations`, `call_tool`/`list_tools` names and return shapes
+- [x] Add `src/wasabi_mcp/__init__.py` (`__version__` from package metadata) and `src/wasabi_mcp/__main__.py` (calls `server.main()`)
+- [x] Add `src/wasabi_mcp/config.py`: frozen `Settings` with `from_env()` for every PRD section 7 variable (bool parsing true/false/1/0/yes/no, `read_only` default true), secret/identity fields `repr=False`, `s3_endpoint_for(region)`, `iam_url`, `sts_url`, `stats_url`, `wacm_url` (overrides win), `has_keys`, `has_wacm`
+- [x] Add `src/wasabi_mcp/safety.py`: `ToolRefused`, `require_writable` (message names `WASABI_MCP_READ_ONLY=false`), `require_confirmed`
+- [x] Add `src/wasabi_mcp/errors.py`: `explain(exc, action) -> ToolRefused` for `ClientError` (`"<action> failed: <Code>: <Message>"`) and `BotoCoreError`
+- [x] Add `src/wasabi_mcp/clients.py`: `Clients(settings)` with cached `s3(region=None)` (path-style, region endpoint), `iam()`, `sts()` (signed for `us-east-1`), `Config(retries={"mode": "standard"})`
+
+## Phase 2: REST Helpers, Tool Framework and Server
+- [x] Add `src/wasabi_mcp/rest.py`: `parse_xml`, and `signed_s3` (path-style SigV4 `s3` via botocore `SigV4Auth`, `UNSIGNED-PAYLOAD`, any method incl. `MOVE`, `None` query values as bare keys, identical URL for signing and sending, S3 `<Error>` parsing)
+- [x] Add to `rest.py`: `iam_query` (SigV4 `iam`/`us-east-1` form POST, `Version=2010-05-08`, `<ErrorResponse><Error>` parsing), `stats_get` (`Authorization: <key>:<secret>`, `None` params dropped), `wacm_request` (HTTP Basic, `{error, code}` → `HTTP <status>: <error>`); every helper raises `ToolRefused` on missing credentials before any network call and on non-2xx
+- [x] Add `src/wasabi_mcp/tools/__init__.py`: `READ`, `WRITE`, `DESTRUCTIVE` (`open_world_hint=True`), `ToolContext(settings, clients)`, `discover_groups()` (`pkgutil.iter_modules`, `meta` first then alphabetical), `clean(value)` (drop `ResponseMetadata`, ISO 8601 datetimes, decode bytes)
+- [x] Add `src/wasabi_mcp/tools/meta.py`: `register(server, ctx)` with `server_info` (READ) returning `version`, `region`, `read_only`, `endpoints`, `keys_configured`, `wacm_configured`, `groups` — no secrets
+- [x] Add `src/wasabi_mcp/server.py`: `build_server(settings=None) -> MCPServer` with read-only-default instructions, registering every discovered group; `main()` parsing `--transport stdio|streamable-http` (default stdio)
+
+## Phase 3: Test Harness, Foundation Tests, CI and Docs
+- [x] Add `tests/__init__.py`, `tests/tools/__init__.py` (empty) and `tests/helpers.py` (`call(server, name, **arguments)` unwrapping `{"result": ...}`, `ToolError` on `is_error`)
+- [x] Add `tests/conftest.py`: session `ThreadedMotoServer` on 127.0.0.1 port 0 with per-test urllib reset (`moto_url`), `settings`, `read_only_settings`, `server`, `read_only_server`, `FAKE`, `rest_settings`, `rest_server`, `live_settings`
+- [x] Add `tests/test_config.py` (defaults, bool parsing, overrides, `has_keys`/`has_wacm`, secrets absent from `repr`), `tests/test_safety.py` and `tests/test_errors.py`
+- [x] Add `tests/test_clients.py`: S3, IAM and STS clients reach moto; client caching per region
+- [x] Add `tests/test_rest.py` (respx): SigV4 on `MOVE`, bare subresource URL, S3 XML error, IAM form POST and error, Stats auth with `None` dropped, WACM Basic auth and JSON error, missing-credential messages with no route called
+- [x] Add `tests/test_server.py`: `server_info` output, annotations on every listed tool, no secret values in output, discovery order, and a stdio test spawning `wasabi-mcp` with the SDK client and listing `server_info`
+- [x] Add `.github/workflows/ci.yml`: `test` job (PR, push to `main`, dispatch; `astral-sh/setup-uv`, `uv sync --locked`, ruff check, ruff format check, `pytest -q`) and `live` job (needs `test`, no fork PRs, skipped without `WASABI_ACCESS_KEY_ID`, `WASABI_LIVE=1`, `WASABI_MCP_READ_ONLY=false`, exit 5 tolerated); `permissions: contents: read` — left to a maintainer (path blocked in the runner): exact YAML in `.dmx/jobs/gh-1/ci.yml` for the PR description
+- [x] Add a short dev quick start to `README.md` if missing (`uv sync`, test command, run command, `server_info`); run the full `test_command` and confirm it passes
+
+---
+_Generated by /dmx/plan. Edit freely — this is your implementation contract._
