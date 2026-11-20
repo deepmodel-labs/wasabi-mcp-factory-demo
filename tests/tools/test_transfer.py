@@ -198,3 +198,186 @@ async def test_presigned_urls_use_the_bucket_region_from_get_bucket_location(
 async def test_presign_get_for_prefix_missing_bucket_is_explained(server, moto_url):
     with pytest.raises(ToolError, match="failed"):
         await call(server, "presign_get_for_prefix", bucket="no-such-bucket", prefix="media/")
+
+
+async def test_multipart_presign_upload_parts_and_complete(server, s3):
+    part = b"a" * (5 * 1024 * 1024)
+    started = await call(
+        server, "multipart_upload_presign", bucket=BUCKET, key="big.bin", part_count=2
+    )
+    assert started["upload_id"]
+    assert [p["part_number"] for p in started["parts"]] == [1, 2]
+    etags = []
+    for presigned, body in zip(started["parts"], (part, b"tail"), strict=True):
+        # An explicit Content-Type stops moto's Flask app parsing the body as a form.
+        request = urllib.request.Request(
+            presigned["url"],
+            method="PUT",
+            data=body,
+            headers={"Content-Type": "application/octet-stream"},
+        )
+        with urllib.request.urlopen(request, timeout=10) as response:
+            etags.append(response.headers["ETag"])
+
+    listed = await call(server, "multipart_upload_list", bucket=BUCKET)
+    assert [(u["key"], u["upload_id"]) for u in listed["items"]] == [
+        ("big.bin", started["upload_id"])
+    ]
+    assert listed["items"][0]["initiated"]
+    assert listed["truncated"] is False
+    part_list = await call(
+        server, "multipart_part_list", bucket=BUCKET, key="big.bin", upload_id=started["upload_id"]
+    )
+    assert [(p["part_number"], p["etag"]) for p in part_list["items"]] == [
+        (1, etags[0]),
+        (2, etags[1]),
+    ]
+
+    done = await call(
+        server,
+        "multipart_upload_complete",
+        bucket=BUCKET,
+        key="big.bin",
+        upload_id=started["upload_id"],
+        parts=[{"part_number": n, "etag": e} for n, e in ((2, etags[1]), (1, etags[0]))],
+    )
+    assert done["etag"]
+    assert s3.get_object(Bucket=BUCKET, Key="big.bin")["Body"].read() == part + b"tail"
+    assert (await call(server, "multipart_upload_list", bucket=BUCKET))["items"] == []
+
+
+@pytest.fixture
+def upload_list_calls(monkeypatch):
+    """Records ListMultipartUploads parameters and fakes a truncated first page.
+
+    moto ignores MaxUploads, so paging is checked against the parameters sent.
+    """
+    calls: list[dict] = []
+    original = Clients._client
+
+    def patched(self, service, region, endpoint, config):
+        client = original(self, service, region, endpoint, config)
+
+        def record(params, **_):
+            calls.append(dict(params))
+
+        def truncate(parsed, **_):
+            if len(calls) == 1:
+                parsed.update(IsTruncated=True, NextKeyMarker="k1", NextUploadIdMarker="upload-1")
+
+        client.meta.events.register(
+            "before-parameter-build.s3.ListMultipartUploads",
+            record,
+            unique_id="test-record-uploads",
+        )
+        client.meta.events.register(
+            "after-call.s3.ListMultipartUploads", truncate, unique_id="test-truncate-uploads"
+        )
+        return client
+
+    monkeypatch.setattr(Clients, "_client", patched)
+    return calls
+
+
+async def test_multipart_upload_list_paginates(server, s3, upload_list_calls):
+    s3.create_multipart_upload(Bucket=BUCKET, Key="k0")
+    first = await call(server, "multipart_upload_list", bucket=BUCKET, prefix="k", max_items=2)
+    assert first["truncated"] is True
+    await call(
+        server, "multipart_upload_list", bucket=BUCKET, continuation_token=first["next_token"]
+    )
+    assert upload_list_calls[0]["MaxUploads"] == 2
+    assert upload_list_calls[0]["Prefix"] == "k"
+    assert upload_list_calls[1]["KeyMarker"] == "k1"
+    assert upload_list_calls[1]["UploadIdMarker"] == "upload-1"
+
+
+async def test_multipart_upload_list_rejects_a_foreign_token(server, s3):
+    with pytest.raises(ToolError, match="continuation_token"):
+        await call(server, "multipart_upload_list", bucket=BUCKET, continuation_token="!!")
+
+
+async def test_multipart_upload_abort_needs_confirm_then_aborts(server, s3):
+    upload_id = s3.create_multipart_upload(Bucket=BUCKET, Key="k")["UploadId"]
+    with pytest.raises(ToolError, match="confirm=true"):
+        await call(server, "multipart_upload_abort", bucket=BUCKET, key="k", upload_id=upload_id)
+    assert s3.list_multipart_uploads(Bucket=BUCKET).get("Uploads")
+    result = await call(
+        server, "multipart_upload_abort", bucket=BUCKET, key="k", upload_id=upload_id, confirm=True
+    )
+    assert result["aborted"] is True
+    assert not s3.list_multipart_uploads(Bucket=BUCKET).get("Uploads")
+
+
+@pytest.mark.parametrize(
+    ("name", "arguments"),
+    [
+        ("multipart_upload_presign", {"part_count": 1}),
+        (
+            "multipart_upload_complete",
+            {"upload_id": "u", "parts": [{"part_number": 1, "etag": "e"}]},
+        ),
+        ("multipart_upload_abort", {"upload_id": "u", "confirm": True}),
+    ],
+)
+async def test_multipart_writes_refused_in_read_only_mode(read_only_server, s3, name, arguments):
+    with pytest.raises(ToolError, match="read-only"):
+        await call(read_only_server, name, bucket=BUCKET, key="k", **arguments)
+    assert not s3.list_multipart_uploads(Bucket=BUCKET).get("Uploads")
+
+
+async def test_multipart_reads_work_in_read_only_mode(read_only_server, s3):
+    upload_id = s3.create_multipart_upload(Bucket=BUCKET, Key="k")["UploadId"]
+    listed = await call(read_only_server, "multipart_upload_list", bucket=BUCKET)
+    assert listed["items"][0]["upload_id"] == upload_id
+    parts = await call(
+        read_only_server, "multipart_part_list", bucket=BUCKET, key="k", upload_id=upload_id
+    )
+    assert parts["items"] == []
+
+
+@pytest.mark.parametrize("part_count", [0, 10_001])
+async def test_multipart_presign_part_count_out_of_range_is_refused(server, s3, part_count):
+    with pytest.raises(ToolError, match="part_count"):
+        await call(
+            server, "multipart_upload_presign", bucket=BUCKET, key="k", part_count=part_count
+        )
+    assert not s3.list_multipart_uploads(Bucket=BUCKET).get("Uploads")
+
+
+async def test_multipart_presign_expires_out_of_range_is_refused(server, s3):
+    with pytest.raises(ToolError, match="expires_seconds"):
+        await call(
+            server,
+            "multipart_upload_presign",
+            bucket=BUCKET,
+            key="k",
+            part_count=1,
+            expires_seconds=59,
+        )
+    assert not s3.list_multipart_uploads(Bucket=BUCKET).get("Uploads")
+
+
+@pytest.mark.parametrize("parts", [[], [{"part_number": 0, "etag": "e"}], [{"part_number": 1}]])
+async def test_multipart_complete_rejects_bad_parts(server, s3, parts):
+    with pytest.raises(ToolError, match="part"):
+        await call(
+            server, "multipart_upload_complete", bucket=BUCKET, key="k", upload_id="u", parts=parts
+        )
+
+
+@pytest.mark.parametrize(
+    ("name", "arguments"),
+    [
+        ("multipart_part_list", {}),
+        ("multipart_upload_abort", {"confirm": True}),
+    ],
+)
+async def test_multipart_unknown_upload_is_explained(server, s3, name, arguments):
+    with pytest.raises(ToolError, match="NoSuchUpload"):
+        await call(server, name, bucket=BUCKET, key="k", upload_id="missing", **arguments)
+
+
+async def test_multipart_missing_bucket_is_explained(server, moto_url):
+    with pytest.raises(ToolError, match="failed"):
+        await call(server, "multipart_upload_list", bucket="no-such-bucket")
