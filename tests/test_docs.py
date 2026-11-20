@@ -56,5 +56,5 @@ def test_readme_documents_every_prd_environment_variable():
     variables = set(re.findall(r"`(WASABI_\w+)`", section))
     readme = (DOCS.parent / "README.md").read_text()
     configuration = readme.split("## Configuration", 1)[1].split("\n## ", 1)[0]
-    assert len(variables) == 12
+    assert len(variables) == 14
     assert {v for v in variables if f"`{v}`" not in configuration} == set()
