@@ -11,6 +11,8 @@
 - respx can't see boto3 traffic (boto3 sends with urllib3; respx patches httpx). Use botocore's `Stubber` for Wasabi-only behaviour on boto3 calls; respx only for `rest.py` helpers.
 - moto 5.2 IAM gaps: ignores `MaxItems`/`Marker` on ListUsers/ListGroups and `PathPrefix` on ListGroups, never raises `DeleteConflict`, doesn't error on UpdateGroup for a missing group, and reports `PasswordResetRequired=false` whatever was sent.
 - botocore already URL-decodes and parses IAM policy documents (its `json_decode_policies` handler), so boto3 returns them as dicts.
+- moto 5.2 deletes a managed policy that's still attached (no `DeleteConflict`), but does raise `DeleteConflict` for DeleteRole with attached policies and `LimitExceeded` on a sixth policy version.
+- `tests.helpers.call` unwraps a result that is exactly `{"result": ...}`, so a tool must not return a dict whose only key is `result`.
 
 ## Dev setup (once ticket 0 lands)
 - `uv sync`

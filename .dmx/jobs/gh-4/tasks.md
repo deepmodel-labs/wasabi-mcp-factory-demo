@@ -16,11 +16,11 @@
 - [x] Add `docs/tools/iam_users.md`, `docs/tools/iam_keys.md`, `docs/tools/iam_groups.md` (name, kind, description in catalogue order)
 
 ## Phase 2: Roles, STS and policies
-- [ ] Add `src/wasabi_mcp/tools/iam_roles.py` (8 tools: role list/get/create/delete with `cascade`, trust_policy_update, `sts_caller_identity` (no keys), `sts_assume_role` and `sts_session_token` (D, `duration_seconds` ≤ 43,200 validated first, `credentials` returned once))
-- [ ] Add `src/wasabi_mcp/tools/iam_policies.py` (10 tools: policy list (`scope="All"` default)/get/create/delete with `cascade`, version list/get/create/delete/set_default, entities_list; documents returned as JSON objects)
-- [ ] Add `src/wasabi_mcp/tools/iam_policy_bindings.py` (8 tools: attach (D)/detach, attached_policy_list, inline list/get/put/delete via `principal_type` dispatch, `iam_policy_validate` via `rest.iam_query("ValidatePolicy")`)
-- [ ] Add `tests/tools/test_iam_roles.py`, `tests/tools/test_iam_policies.py`, `tests/tools/test_iam_policy_bindings.py` (moto + respx; respx asserts ValidatePolicy is a signed form POST with `Action`, `Version=2010-05-08`, `AWS4-HMAC-SHA256` and returns parsed JSON; STS credential tools refuse without confirm)
-- [ ] Add `docs/tools/iam_roles.md`, `docs/tools/iam_policies.md`, `docs/tools/iam_policy_bindings.md`
+- [x] Add `src/wasabi_mcp/tools/iam_roles.py` (8 tools: role list/get/create/delete with `cascade`, trust_policy_update, `sts_caller_identity` (no keys), `sts_assume_role` and `sts_session_token` (D, `duration_seconds` ≤ 43,200 validated first, `credentials` returned once))
+- [x] Add `src/wasabi_mcp/tools/iam_policies.py` (10 tools: policy list (`scope="All"` default)/get/create/delete with `cascade`, version list/get/create/delete/set_default, entities_list; documents returned as JSON objects)
+- [x] Add `src/wasabi_mcp/tools/iam_policy_bindings.py` (8 tools: attach (D)/detach, attached_policy_list, inline list/get/put/delete via `principal_type` dispatch, `iam_policy_validate` via `rest.iam_query("ValidatePolicy")`)
+- [x] Add `tests/tools/test_iam_roles.py`, `tests/tools/test_iam_policies.py`, `tests/tools/test_iam_policy_bindings.py` (moto + respx; respx asserts ValidatePolicy is a signed form POST with `Action`, `Version=2010-05-08`, `AWS4-HMAC-SHA256` and returns parsed JSON; STS credential tools refuse without confirm)
+- [x] Add `docs/tools/iam_roles.md`, `docs/tools/iam_policies.md`, `docs/tools/iam_policy_bindings.md`
 
 ## Phase 3: Account tools, scenarios and gate
 - [ ] Add `src/wasabi_mcp/tools/iam_account.py` (12 tools: account summary, authorization details, password policy get/set/delete, account alias list/create/delete, MFA device list, `iam_user_mfa_get` via `rest.iam_query("GetUserMFA")`, virtual MFA create (D, seed + QR only when confirmed), MFA deactivate)

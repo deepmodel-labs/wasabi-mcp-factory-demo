@@ -12,13 +12,14 @@
     "implement-next-phase"
   ],
   "skill_outputs": {
-    "implement-next-phase": "Phase 1 (shared helpers, users, keys, groups) done; all 6 tasks checked in tasks.md. Changes are not committed yet.\n- src/wasabi_mcp/tools/_iam.py: pagination, policy JSON in/out, principal dispatch, XML->JSON, error hints, invoke/collect wrappers.\n- iam_users.py (9 tools, cascade delete with steps, generated password returned once), iam_keys.py (5, UserName=* for all_users, secret only in confirmed create), iam_groups.py (8, cascade delete).\n- Tests: test_iam_helpers/users/keys/groups.py plus tests/tools/iam_support.py. Wasabi-only boto3 behaviour uses a botocore Stubber, because respx can't see urllib3 traffic.\n- Docs: docs/tools/iam_users.md, iam_keys.md, iam_groups.md.\n- Gate passes: ruff check, ruff format --check and pytest (147 passed).\n- Learnings about moto gaps and the Stubber approach added to activeContext.md."
+    "implement-next-phase": "Phase 2 (roles, STS and policies) done; all 5 tasks checked in tasks.md. Not committed yet.\n- iam_roles.py (8 tools): role CRUD with cascade, trust policy as JSON, STS tools. Durations validated before any call; assume_role and session_token return credentials once on confirm; root AssumeRole hint; caller_identity never returns keys.\n- iam_policies.py (10 tools): scope defaults to All, cascade delete detaches everywhere and removes old versions, hint at the five-version limit.\n- iam_policy_bindings.py (8 tools): principal_type dispatch for attach, detach and inline policies; iam_policy_validate goes through rest.iam_query and returns {\"validation\": ...}.\n- Tests: test_iam_roles/policies/policy_bindings.py. respx checks ValidatePolicy is a signed form POST with Version=2010-05-08 and that the result comes back as JSON.\n- Docs: docs/tools/iam_roles.md, iam_policies.md, iam_policy_bindings.md.\n- Gate passes: 248 passed, ruff clean. Learnings about the {\"result\"} unwrap and moto DeleteConflict gaps added to activeContext.md.",
+    "commit": "Committed 2f892aa \"feat: add IAM users, access keys and groups tool groups\" (Closes #4), not pushed.\nStaged only ticket files: _iam.py, iam_users/keys/groups.py, tests/tools (helpers, support, 3 test files), docs/tools (3 md), .dmx/jobs/gh-4.\nContainer dotfiles (.bashrc, .idea, .mcp.json, scripts and so on) left untracked on purpose.\nMemory: promoted the respx/boto3 Stubber note, the moto IAM gaps and the botocore policy decoding to techContext.md, and the Stubber test and _iam helper patterns to systemPatterns.md. Cleared Open Learnings and added a session note.\nNo AI attribution trailer in the commit."
   },
   "validator_results": [],
-  "outcome": null,
-  "iteration_count": 0,
+  "outcome": "success",
+  "iteration_count": 1,
   "timestamp": "2026-11-20T01:34:25.652793+00:00",
-  "updated_at": "2026-11-20T01:43:08.301315+00:00",
+  "updated_at": "2026-11-20T01:52:06.085420+00:00",
   "validation_started_at": null,
   "finish_message": null
 }
