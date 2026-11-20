@@ -25,6 +25,7 @@
 - `tests.helpers.call` unwraps a result that is exactly `{"result": ...}`, so a tool must not return a dict whose only key is `result`.
 - moto 5.2 ListVirtualMFADevices returns each device's `Base32StringSeed` and `QRCodePNG` (as bytes); tools that list MFA devices must strip them.
 - Wasabi's ValidatePolicy and GetUserMFA response shapes aren't documented in the PRD: the tools return the `<ActionResult>` element as JSON, and unit tests use plausible XML. Live tests should confirm the real shapes.
+- WACM Connect has no live tests: it needs a partner control account. Its page envelope field names and where `wacm_sub_account_create` puts the new keys are guessed from the docs, so `_wacm.page_result` and the create tool accept several variants. `rest.wacm_request` doesn't expose `Retry-After`, so the 429 retry always waits 5 s.
 
 ## Dev setup (once ticket 0 lands)
 - `uv sync`
