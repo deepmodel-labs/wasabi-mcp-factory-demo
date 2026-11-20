@@ -9,3 +9,4 @@
 - dev loop completed (outcome: success) — chained to validate (job `gh-24`).
 - validate loop completed (outcome: success) — chained to release (job `gh-24`).
 - PR opened for: Fix iam_policy_validate ValidatePolicy request encoding for Wasabi.
+- release loop completed (outcome: success) (job `gh-24`).

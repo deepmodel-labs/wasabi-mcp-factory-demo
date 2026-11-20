@@ -3,22 +3,47 @@
   "job_id": "gh-24",
   "task_id": "1868058c-f7d6-434e-b17e-3181bde95519",
   "status": "complete",
-  "current_skill_index": 1,
+  "current_skill_index": 2,
   "skills": [
     "prune-jobs",
     "create-pr"
   ],
   "skills_completed": [
-    "prune-jobs"
+    "prune-jobs",
+    "create-pr"
   ],
   "skill_outputs": {
-    "prune-jobs": "No finished jobs to remove. All other jobs finished less than 30 days ago; gh-24 kept as the current ticket. No jobs kept for open learnings or decisions. No commit made."
+    "prune-jobs": "No finished jobs to remove. All other jobs finished less than 30 days ago; gh-24 kept as the current ticket. No jobs kept for open learnings or decisions. No commit made.",
+    "create-pr": "PR created: https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/pull/25 (Bug | #24 Fix iam_policy_validate ValidatePolicy Request Encoding for Wasabi), base main.\nTitle follows the repo's default dmx format (no CONTRIBUTING/AGENTS/CLAUDE.md title convention found).\nMemory: no open learnings/decisions to promote; techContext already updated in the fix commit; session note added; release loop snapshotted; committed 0ba7061 \"chore: sync memory bank for gh-24\" and pushed the branch.\nTicket #24 labels: in-progress -> in-review.\nPR notes flag that the live encoding is still unconfirmed and that the WASABI_LIVE=1 test settles it."
   },
-  "validator_results": [],
-  "outcome": null,
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "PR ready check passed",
+      "checks": [
+        {
+          "name": "pr_exists",
+          "pass": true,
+          "message": "PR open: https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/pull/25"
+        },
+        {
+          "name": "ticket_transitioned",
+          "pass": true,
+          "message": "Ticket 'gh-24' transition not verified \u2014 requires ticketing API access. Confirm manually or override this validator for automated checking."
+        },
+        {
+          "name": "memory_updated",
+          "pass": true,
+          "message": "Memory bank files updated in the latest commit"
+        }
+      ],
+      "tool": "check_pr_ready"
+    }
+  ],
+  "outcome": "success",
   "iteration_count": 0,
   "timestamp": "2026-11-20T07:39:46.214048+00:00",
-  "updated_at": "2026-11-20T07:40:33.728556+00:00",
-  "validation_started_at": null,
-  "finish_message": null
+  "updated_at": "2026-11-20T07:41:33.748546+00:00",
+  "validation_started_at": "2026-11-20T07:41:30.202087+00:00",
+  "finish_message": "**release loop \u2014 complete \u2713**\n\nJob: `gh-24` | Outcome: `success`"
 }
