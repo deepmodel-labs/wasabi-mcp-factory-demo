@@ -3,7 +3,6 @@
 ## Open Decisions
 
 ## Session Notes
-- spec loop completed (outcome: success) — chained to plan (job `gh-7`).
 - plan loop completed (outcome: success) — chained to dev (job `gh-7`).
 - Added object read tools (objects_read.py), moto tests and docs — Phase 1 complete.
 - dev loop iterating (round 1) — repeat_until 'all_phases_complete' not yet met (job `gh-7`).
@@ -13,3 +12,4 @@
 - dev loop completed (outcome: success) — chained to validate (job `gh-7`).
 - validate loop completed (outcome: success) — chained to release (job `gh-7`).
 - PR opened for: Add S3 object and presigned-URL tool groups. Before merge, it needs `origin/main` merged in (object_lock.py add/add conflict with #9).
+- release loop completed (outcome: success) (job `gh-7`).
