@@ -14,6 +14,7 @@
 - moto ignores explicit grants on PutObjectAcl (only canned ACLs take effect). To test them, register the group on a manually built `MCPServer` with its own `Clients` and capture the request with a botocore `before-call.s3.PutObjectAcl` hook.
 - moto 5.2.5: GetObjectRetention always returns HTTP 500, and PutObjectLockConfiguration with a default rule needs an empty bucket. Check retention through HeadObject (`ObjectLockMode`, `ObjectLockRetainUntilDate`) and stub reads with `botocore.stub.Stubber` on a manually registered server's `clients.s3()`.
 - moto PutBucketLogging needs the target bucket to grant log delivery: create it with `ACL="log-delivery-write"` in tests.
+- moto drops the replication Role, `And` filters and DeleteMarkerReplication status when read back. Check the sent parameters with a botocore `provide-client-params.s3.PutBucketReplication` hook instead.
 
 ## Dev setup (once ticket 0 lands)
 - `uv sync`
