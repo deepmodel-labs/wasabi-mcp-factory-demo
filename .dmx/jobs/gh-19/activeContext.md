@@ -12,3 +12,4 @@
 - validate loop completed (outcome: success) — chained to release (job `gh-19`).
 - PR opened for: Secure remote HTTP with opt-in, bearer token and allowed hosts.
 - release loop completed (outcome: success) (job `gh-19`).
+- Rework round 1: merged origin/main (no rebase; branch is pushed) and resolved the .dmx/techContext.md conflict keeping both sides.
