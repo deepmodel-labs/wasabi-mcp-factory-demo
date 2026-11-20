@@ -6,6 +6,8 @@
 - boto3/botocore for S3, IAM and STS; httpx for Wasabi's REST APIs and S3/IAM extensions (signed with `botocore.auth.SigV4Auth`).
 - Dev: pytest with pytest-asyncio (`asyncio_mode = auto`), moto with server mode, respx, ruff (line length 100).
 - mcp 2.3.0 error handling: a tool exception reaches the client with its message only if it subclasses `mcp.server.mcpserver.exceptions.ToolError`, so `ToolRefused` does. In-process `MCPServer.call_tool` raises `ToolError` (`"Error executing tool <name>: <msg>"`) rather than returning `is_error`; `ToolAnnotations` is in `mcp.types`.
+- mcp 2.3.0 stdio client: `mcp.client.stdio.stdio_client(StdioServerParameters(...))` with `mcp.client.session.ClientSession`. `ThreadedMotoServer(port=0).get_host_and_port()` gives the bound port.
+- respx matches routes in registration order: register path-specific routes before broad `host=` routes.
 
 ## Dev setup (once ticket 0 lands)
 - `uv sync`

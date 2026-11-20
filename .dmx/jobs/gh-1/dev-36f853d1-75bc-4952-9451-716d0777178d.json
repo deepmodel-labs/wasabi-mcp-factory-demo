@@ -12,13 +12,14 @@
     "implement-next-phase"
   ],
   "skill_outputs": {
-    "implement-next-phase": "Phase 1 (Project Setup and Core Modules) done: all 7 tasks are checked off in tasks.md. Nothing is committed yet; the loop commits.\n- Added pyproject.toml (hatchling, src layout, mcp>=2.3,<3, boto3, httpx, the dev group, the wasabi-mcp script, the pytest and ruff config) and uv.lock (mcp 2.3.0 installed).\n- Added src/wasabi_mcp/__init__.py, __main__.py, config.py (frozen Settings, from_env, endpoints, has_keys/has_wacm, credentials out of repr), safety.py, errors.py and clients.py.\n- Checked the SDK: ToolRefused subclasses mcp's ToolError (other exceptions reach the client masked). In-process call_tool raises ToolError on failure. Learnings are recorded in activeContext.md.\n- A smoke test of the modules passed, and ruff check and ruff format --check pass.\n- Note for Phase 3: in this container `.github` and `scripts` are character-device mounts, not directories, so writing .github/workflows/ci.yml may need a workaround."
+    "implement-next-phase": "Phase 2 (REST Helpers, Tool Framework and Server) done: all 5 tasks are checked off in tasks.md. Not committed yet.\n- rest.py: parse_xml, signed_s3 (path-style SigV4 with UNSIGNED-PAYLOAD; any method incl. MOVE; bare subresources; the URL signed is the URL sent), iam_query, stats_get and wacm_request. All raise ToolRefused on missing credentials before any network call, and on non-2xx with the service's code and message.\n- tools/__init__.py: READ/WRITE/DESTRUCTIVE (open_world_hint=True), ToolContext, discover_groups (meta first) and clean().\n- tools/meta.py: server_info (READ). It returns version, region, read_only, endpoints, keys_configured, wacm_configured and groups, with no credentials.\n- server.py: build_server() (read-only-default instructions, auto-registers groups) and main() with --transport stdio|streamable-http.\n- Smoke checks pass: respx checks of all four helpers; signed_s3 PUTs to moto, read back by boto3; STS/IAM clients reach moto; `wasabi-mcp` over stdio lists server_info. ruff check and format pass.\n- Two test-harness learnings added to activeContext.md.",
+    "commit": "Committed 2cd80b7 on feature-gh-1-foundation-project-config-safety-guards: \"feat: add project setup and core config, safety, error and client modules\" (Closes #1).\n- Staged explicit paths only: pyproject.toml, uv.lock, src/wasabi_mcp/*, .dmx/techContext.md and .dmx/jobs/gh-1/*. The container artefacts (.bashrc, .idea, scripts, .github device mount, etc.) are left uncommitted, per the spec.\n- Memory bank: the mcp 2.3 ToolError/call_tool behaviour is promoted to techContext.md, Open Learnings is cleared, and a Phase 1 session note is added.\n- No attribution trailers. Not pushed."
   },
   "validator_results": [],
-  "outcome": null,
-  "iteration_count": 0,
+  "outcome": "success",
+  "iteration_count": 1,
   "timestamp": "2026-11-19T23:58:07.059039+00:00",
-  "updated_at": "2026-11-20T00:01:02.288775+00:00",
+  "updated_at": "2026-11-20T00:04:25.869193+00:00",
   "validation_started_at": null,
   "finish_message": null
 }

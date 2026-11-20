@@ -17,11 +17,11 @@
 - [x] Add `src/wasabi_mcp/clients.py`: `Clients(settings)` with cached `s3(region=None)` (path-style, region endpoint), `iam()`, `sts()` (signed for `us-east-1`), `Config(retries={"mode": "standard"})`
 
 ## Phase 2: REST Helpers, Tool Framework and Server
-- [ ] Add `src/wasabi_mcp/rest.py`: `parse_xml`, and `signed_s3` (path-style SigV4 `s3` via botocore `SigV4Auth`, `UNSIGNED-PAYLOAD`, any method incl. `MOVE`, `None` query values as bare keys, identical URL for signing and sending, S3 `<Error>` parsing)
-- [ ] Add to `rest.py`: `iam_query` (SigV4 `iam`/`us-east-1` form POST, `Version=2010-05-08`, `<ErrorResponse><Error>` parsing), `stats_get` (`Authorization: <key>:<secret>`, `None` params dropped), `wacm_request` (HTTP Basic, `{error, code}` → `HTTP <status>: <error>`); every helper raises `ToolRefused` on missing credentials before any network call and on non-2xx
-- [ ] Add `src/wasabi_mcp/tools/__init__.py`: `READ`, `WRITE`, `DESTRUCTIVE` (`open_world_hint=True`), `ToolContext(settings, clients)`, `discover_groups()` (`pkgutil.iter_modules`, `meta` first then alphabetical), `clean(value)` (drop `ResponseMetadata`, ISO 8601 datetimes, decode bytes)
-- [ ] Add `src/wasabi_mcp/tools/meta.py`: `register(server, ctx)` with `server_info` (READ) returning `version`, `region`, `read_only`, `endpoints`, `keys_configured`, `wacm_configured`, `groups` — no secrets
-- [ ] Add `src/wasabi_mcp/server.py`: `build_server(settings=None) -> MCPServer` with read-only-default instructions, registering every discovered group; `main()` parsing `--transport stdio|streamable-http` (default stdio)
+- [x] Add `src/wasabi_mcp/rest.py`: `parse_xml`, and `signed_s3` (path-style SigV4 `s3` via botocore `SigV4Auth`, `UNSIGNED-PAYLOAD`, any method incl. `MOVE`, `None` query values as bare keys, identical URL for signing and sending, S3 `<Error>` parsing)
+- [x] Add to `rest.py`: `iam_query` (SigV4 `iam`/`us-east-1` form POST, `Version=2010-05-08`, `<ErrorResponse><Error>` parsing), `stats_get` (`Authorization: <key>:<secret>`, `None` params dropped), `wacm_request` (HTTP Basic, `{error, code}` → `HTTP <status>: <error>`); every helper raises `ToolRefused` on missing credentials before any network call and on non-2xx
+- [x] Add `src/wasabi_mcp/tools/__init__.py`: `READ`, `WRITE`, `DESTRUCTIVE` (`open_world_hint=True`), `ToolContext(settings, clients)`, `discover_groups()` (`pkgutil.iter_modules`, `meta` first then alphabetical), `clean(value)` (drop `ResponseMetadata`, ISO 8601 datetimes, decode bytes)
+- [x] Add `src/wasabi_mcp/tools/meta.py`: `register(server, ctx)` with `server_info` (READ) returning `version`, `region`, `read_only`, `endpoints`, `keys_configured`, `wacm_configured`, `groups` — no secrets
+- [x] Add `src/wasabi_mcp/server.py`: `build_server(settings=None) -> MCPServer` with read-only-default instructions, registering every discovered group; `main()` parsing `--transport stdio|streamable-http` (default stdio)
 
 ## Phase 3: Test Harness, Foundation Tests, CI and Docs
 - [ ] Add `tests/__init__.py`, `tests/tools/__init__.py` (empty) and `tests/helpers.py` (`call(server, name, **arguments)` unwrapping `{"result": ...}`, `ToolError` on `is_error`)
