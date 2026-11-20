@@ -37,3 +37,6 @@
 - Build only from public documentation. Never copy code from Wasabi's official MCP server or any third-party Wasabi MCP project.
 - Never log or return the configured credentials.
 - The factory runner can't write `.github/` (it's mounted as /dev/null). Changes to `.github/workflows/ci.yml` go to a maintainer: put the exact YAML in the job folder and the PR description.
+- A ranged GetObject on an empty object fails with `InvalidRange`; treat that as an empty body.
+- Pushed feature branches are never force-pushed. To bring one up to date with `main` (even when a review asks for a rebase), merge `origin/main` into it.
+- moto 5.2.5 has no GetObjectRetention handler (it returns 500) and doesn't enforce `x-amz-bypass-governance-retention`. Test those paths by patching `Clients._client` to register botocore `before-call` (canned response) or `before-send` (header capture) hooks; respx can't intercept boto3.
