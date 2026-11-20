@@ -15,6 +15,7 @@
 - moto 5.2.5: GetObjectRetention always returns HTTP 500, and PutObjectLockConfiguration with a default rule needs an empty bucket. Check retention through HeadObject (`ObjectLockMode`, `ObjectLockRetainUntilDate`) and stub reads with `botocore.stub.Stubber` on a manually registered server's `clients.s3()`.
 - moto PutBucketLogging needs the target bucket to grant log delivery: create it with `ACL="log-delivery-write"` in tests.
 - moto drops the replication Role, `And` filters and DeleteMarkerReplication status when read back. Check the sent parameters with a botocore `provide-client-params.s3.PutBucketReplication` hook instead.
+- Wasabi doesn't document the response shape of `PUT /bucket?manifestCreateAndProcess` (replication backfill). `bucket_replication_backfill` reads a JobId (or Id) from either JSON or XML. Confirm the real shape in the live suite (ticket 24).
 
 ## Dev setup (once ticket 0 lands)
 - `uv sync`
