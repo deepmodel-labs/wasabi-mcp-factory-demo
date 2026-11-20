@@ -17,12 +17,12 @@
 - [x] Add `tests/tools/test_wacm_accounts.py` and `tests/tools/test_wacm_channels.py` (respx on `FAKE["wacm"]`, `rest_settings`/`rest_server`): Basic auth header, query params with `None` dropped, JSON bodies, read-only refusal for W/D tools and confirm refusal for D tools with zero respx calls, `SECRETS` absent from outputs
 
 ## Phase 2: Sub-accounts, members and billing
-- [ ] Add `src/wasabi_mcp/tools/wacm_sub_accounts.py` with `wacm_sub_account_list` R, `_get` R, `_create` D (validates name length 3–100 and that `storageQuotaType="Hard"` requires `purchasedStorageTB`; sends `name`, `wasabiAccountEmail`, `password`/`sendWelcomeEmail`, `controlAccountId`/`channelAccountId`, `isTrial`, `trialQuotaTB`, `trialDays`, `purchasedStorageTB`, `storageQuotaType`; returns `access_key_id`/`secret_access_key` once), `_update` D (PATCH: active, trialToPaid, quota, resetKeys, resetMFA), `_delete` D, `wacm_sub_account_bucket_list` R
-- [ ] Add `src/wasabi_mcp/tools/wacm_members.py` with `wacm_member_list` R, `_get` R, `_create` D, `_update` D, `_delete` D
-- [ ] Add `src/wasabi_mcp/tools/wacm_billing.py` with `wacm_invoice_list` R, `wacm_invoice_get` R, `wacm_usage_list` R, `wacm_usage_get` R
-- [ ] Add `tests/tools/test_wacm_sub_accounts.py`: S6 (10 TB hard quota create sends the documented JSON body to `wacm_url` with Basic auth, keys returned only with confirm=true), validation errors before any call, PATCH body, delete refuses without confirm
-- [ ] Add `tests/tools/test_wacm_members.py` and `tests/tools/test_wacm_billing.py`, including the S7 respx test joining `wacm_sub_account_list` quota data with `wacm_usage_list` usage per sub-account
-- [ ] Add `tests/tools/test_wacm_unconfigured.py`: with `has_wacm` false, every one of the 32 `wacm_*` tools (called with valid args, writes enabled, confirm=true) returns a ToolRefused naming `WASABI_WACM_USERNAME and WASABI_WACM_API_KEY`
+- [x] Add `src/wasabi_mcp/tools/wacm_sub_accounts.py` with `wacm_sub_account_list` R, `_get` R, `_create` D (validates name length 3–100 and that `storageQuotaType="Hard"` requires `purchasedStorageTB`; sends `name`, `wasabiAccountEmail`, `password`/`sendWelcomeEmail`, `controlAccountId`/`channelAccountId`, `isTrial`, `trialQuotaTB`, `trialDays`, `purchasedStorageTB`, `storageQuotaType`; returns `access_key_id`/`secret_access_key` once), `_update` D (PATCH: active, trialToPaid, quota, resetKeys, resetMFA), `_delete` D, `wacm_sub_account_bucket_list` R
+- [x] Add `src/wasabi_mcp/tools/wacm_members.py` with `wacm_member_list` R, `_get` R, `_create` D, `_update` D, `_delete` D
+- [x] Add `src/wasabi_mcp/tools/wacm_billing.py` with `wacm_invoice_list` R, `wacm_invoice_get` R, `wacm_usage_list` R, `wacm_usage_get` R
+- [x] Add `tests/tools/test_wacm_sub_accounts.py`: S6 (10 TB hard quota create sends the documented JSON body to `wacm_url` with Basic auth, keys returned only with confirm=true), validation errors before any call, PATCH body, delete refuses without confirm
+- [x] Add `tests/tools/test_wacm_members.py` and `tests/tools/test_wacm_billing.py`, including the S7 respx test joining `wacm_sub_account_list` quota data with `wacm_usage_list` usage per sub-account
+- [x] Add `tests/tools/test_wacm_unconfigured.py`: with `has_wacm` false, every one of the 32 `wacm_*` tools (called with valid args, writes enabled, confirm=true) returns a ToolRefused naming `WASABI_WACM_USERNAME and WASABI_WACM_API_KEY`
 
 ## Phase 3: Docs and verification
 - [ ] Add `docs/tools/wacm_accounts.md`, `wacm_channels.md`, `wacm_sub_accounts.md`, `wacm_members.md`, `wacm_billing.md` (tool, kind, parameters, returns, safety notes)
