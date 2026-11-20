@@ -1,11 +1,13 @@
 import base64
+import socket
 from urllib.parse import parse_qs
 
+import httpcore
 import httpx
 import pytest
 import respx
 
-from tests.conftest import FAKE, FAKE_ACCESS_KEY, FAKE_SECRET_KEY, FAKE_WACM_API_KEY
+from tests.conftest import FAKE, FAKE_ACCESS_KEY, FAKE_SECRET_KEY, FAKE_WACM_API_KEY, SECRETS
 from wasabi_mcp import rest
 from wasabi_mcp.config import Settings
 from wasabi_mcp.safety import ToolRefused
@@ -284,3 +286,141 @@ def test_missing_credentials_refuse_before_any_request(helper, message):
             helper(NO_CREDENTIALS)
         assert str(exc.value) == message
         assert not route.called
+
+
+# --- transport errors -----------------------------------------------------------------
+
+STATS_PATH = "/v1/standalone/utilizations"
+TRANSPORT_CALLS = [
+    pytest.param(
+        lambda s: rest.signed_s3(s, "PUT", "bucket", "a.txt", body=b"x", action="AppendObject"),
+        "AppendObject",
+        "s3.wasabi.test",
+        id="signed_s3",
+    ),
+    pytest.param(
+        lambda s: rest.iam_query(s, "ValidatePolicy", {}),
+        "ValidatePolicy",
+        "iam.wasabi.test",
+        id="iam_query",
+    ),
+    pytest.param(
+        lambda s: rest.stats_get(s, STATS_PATH, {"from": "2026-01-01"}),
+        f"Stats API GET {STATS_PATH}",
+        "stats.wasabi.test",
+        id="stats_get",
+    ),
+    pytest.param(
+        lambda s: rest.wacm_request(s, "delete", "/v1/sub-accounts/7"),
+        "WACM Connect DELETE /v1/sub-accounts/7",
+        "wacm.wasabi.test",
+        id="wacm_request",
+    ),
+]
+
+
+def _raise_through_helper(helper, settings, error: Exception) -> ToolRefused:
+    with respx.mock() as mock:
+        mock.route().mock(side_effect=error)
+        with pytest.raises(ToolRefused) as exc:
+            helper(settings)
+    assert exc.value.__cause__ is error
+    return exc.value
+
+
+@pytest.mark.parametrize(("helper", "operation", "host"), TRANSPORT_CALLS)
+def test_connection_refused_names_operation_host_and_reason(rest_settings, helper, operation, host):
+    error = httpx.ConnectError("[Errno 111] Connection refused")
+    refused = _raise_through_helper(helper, rest_settings, error)
+    assert str(refused) == f"{operation} failed: couldn't connect to {host} (connection refused)"
+    assert refused.code == "NetworkError"
+
+
+@pytest.mark.parametrize(("helper", "operation", "host"), TRANSPORT_CALLS)
+@pytest.mark.parametrize(
+    "text",
+    [
+        "[Errno -2] Name or service not known",
+        "[Errno 8] nodename nor servname provided, or not known",
+        "[Errno -3] Temporary failure in name resolution",
+    ],
+)
+def test_dns_failure_names_the_unresolved_host(rest_settings, helper, operation, host, text):
+    refused = _raise_through_helper(helper, rest_settings, httpx.ConnectError(text))
+    assert str(refused) == f"{operation} failed: couldn't resolve host {host}"
+    assert refused.code == "DNSError"
+
+
+def test_dns_failure_is_found_in_the_exception_chain():
+    # httpx raises ConnectError from httpcore's ConnectError, raised from the gaierror.
+    # respx replaces a side effect's __cause__, so this chain is built by hand.
+    try:
+        try:
+            try:
+                raise socket.gaierror(socket.EAI_NONAME, "lookup failed")
+            except socket.gaierror as gai:
+                raise httpcore.ConnectError("connect failed") from gai
+        except httpcore.ConnectError as core:
+            raise httpx.ConnectError("connect failed") from core
+    except httpx.ConnectError as error:
+        refused = rest._transport_error("GetUser", f"{FAKE['iam']}/", error)
+    assert str(refused) == "GetUser failed: couldn't resolve host iam.wasabi.test"
+    assert refused.code == "DNSError"
+
+
+@pytest.mark.parametrize(("helper", "operation", "host"), TRANSPORT_CALLS)
+@pytest.mark.parametrize(
+    ("error", "phase"),
+    [
+        (httpx.ConnectTimeout("timed out"), "connecting to"),
+        (httpx.ReadTimeout("timed out"), "reading from"),
+    ],
+)
+def test_timeout_names_the_phase_and_host(rest_settings, helper, operation, host, error, phase):
+    refused = _raise_through_helper(helper, rest_settings, error)
+    assert str(refused) == f"{operation} failed: timed out {phase} {host}"
+    assert refused.code == "Timeout"
+
+
+@pytest.mark.parametrize(
+    ("error", "reason"),
+    [
+        (httpx.ConnectError("[Errno 104] Connection reset by peer"), "(connection reset)"),
+        (httpx.ConnectError("[Errno 113] No route to host"), "couldn't connect to s3.wasabi.test"),
+        (httpx.RemoteProtocolError("Server disconnected"), "was reset or closed"),
+        (httpx.ReadError("[Errno 104] Connection reset by peer"), "was reset or closed"),
+        (httpx.UnsupportedProtocol("Request URL has an unsupported protocol"), "network error"),
+    ],
+)
+def test_other_transport_errors_are_classified(rest_settings, error, reason):
+    helper = TRANSPORT_CALLS[0].values[0]
+    refused = _raise_through_helper(helper, rest_settings, error)
+    assert str(refused).startswith("AppendObject failed: ")
+    assert reason in str(refused)
+    assert "s3.wasabi.test" in str(refused)
+
+
+def test_dns_timeout_and_refused_messages_are_distinct(rest_settings):
+    helper = TRANSPORT_CALLS[2].values[0]
+    messages = {
+        str(_raise_through_helper(helper, rest_settings, error))
+        for error in (
+            httpx.ConnectError("[Errno -2] Name or service not known"),
+            httpx.ConnectTimeout("timed out"),
+            httpx.ConnectError("[Errno 111] Connection refused"),
+        )
+    }
+    assert len(messages) == 3
+
+
+@pytest.mark.parametrize(("helper", "operation", "host"), TRANSPORT_CALLS)
+def test_transport_errors_never_echo_the_request(rest_settings, helper, operation, host):
+    leaky = (
+        f"[Errno 111] Connection refused: https://{host}/bucket?X-Amz-Credential="
+        f"{FAKE_ACCESS_KEY}&X-Amz-Signature=deadbeef Authorization: {FAKE_ACCESS_KEY}:"
+        f"{FAKE_SECRET_KEY} Basic {FAKE_WACM_API_KEY}"
+    )
+    message = str(_raise_through_helper(helper, rest_settings, httpx.ConnectError(leaky)))
+    assert message.startswith(f"{operation} failed: couldn't connect to {host}")
+    for secret in (*SECRETS, FAKE_ACCESS_KEY, "Signature", "Authorization", "deadbeef"):
+        assert secret not in message

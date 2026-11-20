@@ -12,13 +12,14 @@
     "implement-next-phase"
   ],
   "skill_outputs": {
-    "implement-next-phase": "Implemented Phase 1 (6/6 tasks checked) of gh-34 in src/wasabi_mcp/rest.py:\n- Added _transport_error(operation, url, exc) -> ToolRefused: DNS -> \"couldn't resolve host H\" (DNSError), timeouts -> \"timed out connecting to/reading from/... H\" (Timeout), ConnectError -> \"couldn't connect to H (connection refused|reset|host unreachable)\" (NetworkError), Read/Write/RemoteProtocol -> \"connection to H was reset or closed\", else \"network error talking to H\". Message is built only from operation and host, never str(exc).\n- _send gets an operation param (signed_s3 passes action, iam_query passes action_name); stats_get and wacm_request wrap httpx.TransportError the same way.\n- Verified that the tool-level except ToolRefused sites re-raise errors they don't match; no tool edits needed.\n- ruff check and format clean; full suite: 1332 passed. Changes not yet committed. Phase 2 (tests/docs) remains."
+    "implement-next-phase": "Implemented Phase 2 (Tests & Docs) of gh-34; all tasks in tasks.md are now checked.\n- tests/test_rest.py: respx tests across signed_s3/iam_query/stats_get/wacm_request for connection refused (NetworkError), DNS (DNSError; 3 resolver messages), connect/read timeouts (Timeout), distinct messages, reset/protocol/generic classification, and redaction (no secrets, access key, Signature or Authorization).\n- respx overwrites a side effect's __cause__, so the gaierror __cause__-chain DNS case is unit-tested directly on rest._transport_error.\n- Tool-level: tests/tools/test_stats.py (refused/DNS/timeout via rest_server) and test_objects_ext.py (object_append connect error reported, no create fallback).\n- Existing 4xx/5xx tests unchanged and passing. Full suite 1371 passed; ruff check and format clean (no type checker configured).\n- Added transport-error notes to .dmx/systemPatterns.md and .dmx/techContext.md. Changes uncommitted.",
+    "commit": "Committed 93d4f76 on bug-gh-34-report-operation-host-and-reason-for (not pushed):\n\"fix: report operation, host and reason for REST transport errors\" (Closes #34).\nStaged only src/wasabi_mcp/rest.py and .dmx/jobs/gh-34/ (spec, tasks, activeContext, loop state JSON); unrelated untracked env files (.bashrc, .idea, .mcp.json, scripts, \u2026) were deliberately left out.\nMemory bank: appended a Phase 1 session note to activeContext; no open learnings to promote (the core-file note is a Phase 2 task).\nNo attribution trailers (ai_attribution defaults to strip)."
   },
   "validator_results": [],
-  "outcome": null,
-  "iteration_count": 0,
+  "outcome": "success",
+  "iteration_count": 1,
   "timestamp": "2026-11-20T10:48:52.666423+00:00",
-  "updated_at": "2026-11-20T11:03:52.400209+00:00",
+  "updated_at": "2026-11-20T11:26:23.280143+00:00",
   "validation_started_at": null,
   "finish_message": null
 }

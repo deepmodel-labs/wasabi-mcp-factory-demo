@@ -447,6 +447,27 @@ async def test_object_append_puts_the_text(rest_server):
 
 
 @respx.mock
+async def test_object_append_reports_a_network_error_without_creating_the_object(rest_server):
+    route = respx.route(host="s3.wasabi.test").mock(
+        side_effect=httpx.ConnectError("[Errno 111] Connection refused")
+    )
+    with pytest.raises(ToolError) as excinfo:
+        await call(
+            rest_server,
+            "object_append",
+            bucket="logs",
+            key="app.log",
+            text="x",
+            region="us-east-1",
+        )
+    text = str(excinfo.value)
+    assert "AppendObject failed: couldn't connect to s3.wasabi.test (connection refused)" in text
+    for secret in (*SECRETS, FAKE_ACCESS_KEY, "Signature", "Authorization"):
+        assert secret not in text
+    assert route.call_count == 1
+
+
+@respx.mock
 async def test_object_append_sends_the_content_type_and_wasabi_headers(rest_server):
     route = respx.route(method="PUT").mock(
         return_value=httpx.Response(200, headers={"X-Wasabi-Append-Position": "42"})
