@@ -1,10 +1,19 @@
+import io
+from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta
+from typing import Any
+from urllib.parse import urlsplit
 
 import boto3
+import httpx
 import pytest
+import respx
+from botocore.awsrequest import AWSResponse
+from botocore.exceptions import FlexibleChecksumError
 
 from tests.conftest import FAKE_ACCESS_KEY, FAKE_SECRET_KEY
 from tests.helpers import ToolError, call
+from wasabi_mcp.clients import Clients
 from wasabi_mcp.tools.objects_read import _REGIONS, _size_human
 
 BUCKET = "reads"
@@ -166,6 +175,119 @@ async def test_object_get_text_refuses_binary_content(server, s3):
 async def test_object_get_text_missing_key_is_explained(server, s3):
     with pytest.raises(ToolError, match="GetObject failed: NoSuchKey"):
         await call(server, "object_get_text", bucket=BUCKET, key="missing")
+
+
+class _RawBody(io.BytesIO):
+    """Stands in for urllib3's response so botocore can stream the body."""
+
+    def stream(self, amt: int = 1024, **_: Any) -> Iterator[bytes]:
+        while chunk := self.read(amt):
+            yield chunk
+
+
+def _wasabi_appended_get_object(body: bytes) -> Callable[..., Any]:
+    """A ``before-send`` hook answering GetObject the way Wasabi does for an appended object.
+
+    The CRC32 header covers only the first write, so it doesn't match the full body.
+    """
+
+    def respond(request: Any, **_: Any) -> AWSResponse | None:
+        if request.method != "GET" or not urlsplit(request.url).path.endswith("/log.txt"):
+            return None
+        headers = {
+            "Content-Type": "text/plain",
+            "Content-Length": str(len(body)),
+            "Content-Range": f"bytes 0-{len(body) - 1}/{len(body)}",
+            "ETag": '"9b2cf535f27731c974343645a3985328-2"',
+            "Last-Modified": "Wed, 18 Nov 2026 10:00:00 GMT",
+            "Accept-Ranges": "bytes",
+            "x-amz-checksum-crc32": "AAAAAA==",
+            "x-amz-request-id": "8B1E3C1D2F4A5B6C",
+            "Server": "WasabiS3/7.24.3301-2026-10-01-0b1a2c3d4e (head01)",
+        }
+        return AWSResponse(request.url, 206, headers, _RawBody(body))
+
+    return respond
+
+
+@pytest.fixture
+def s3_hooks(monkeypatch) -> list[Callable[..., Any]]:
+    """``before-send`` hooks added to every S3 client the server builds."""
+    hooks: list[Callable[..., Any]] = []
+    original = Clients._client
+
+    def patched(self, service, region, endpoint, config):
+        client = original(self, service, region, endpoint, config)
+        if service == "s3":
+            client.meta.events.register("before-send", dispatch, unique_id="test-s3-hooks")
+        return client
+
+    def dispatch(**kwargs: Any) -> Any:
+        # Hooks are read per request, so tests can add them after clients are cached.
+        for hook in hooks:
+            if (response := hook(**kwargs)) is not None:
+                return response
+        return None
+
+    monkeypatch.setattr(Clients, "_client", patched)
+    return hooks
+
+
+async def test_object_get_text_reads_an_appended_object(server, s3, moto_url, s3_hooks):
+    await call(server, "object_put_text", bucket=BUCKET, key="log.txt", text="first line\n")
+    # moto has no append extension, so answer it the way Wasabi does and record the result.
+    host = urlsplit(moto_url).hostname
+    with respx.mock:
+        route = respx.route(method="PUT", host=host).mock(
+            return_value=httpx.Response(200, headers={"ETag": '"e1-2"'})
+        )
+        await call(server, "object_append", bucket=BUCKET, key="log.txt", text="second line\n")
+    assert route.calls.last.request.url.query == b"append"
+    s3_hooks.append(_wasabi_appended_get_object(b"first line\nsecond line\n"))
+    result = await call(server, "object_get_text", bucket=BUCKET, key="log.txt")
+    assert result["text"] == "first line\nsecond line\n"
+    assert result["size"] == 23
+    assert result["truncated"] is False
+
+
+def _failing_read(error: Exception) -> Callable[..., Any]:
+    """An ``after-call`` hook whose GetObject body fails to read with ``error``."""
+
+    class FailingBody:
+        def read(self, *_: Any) -> bytes:
+            raise error
+
+    def swap(parsed: dict[str, Any], **_: Any) -> None:
+        parsed["Body"] = FailingBody()
+
+    return swap
+
+
+@pytest.mark.parametrize(
+    ("error", "message"),
+    [
+        (FlexibleChecksumError(error_msg="Expected checksum AAAAAA== did not match"), "GetObject"),
+        (
+            AttributeError("'StreamingChecksumBody' object has no attribute 'strip'"),
+            "GetObject failed while reading the object body: AttributeError",
+        ),
+    ],
+)
+async def test_object_get_text_body_read_errors_are_tool_errors(
+    server, s3, monkeypatch, error, message
+):
+    s3.put_object(Bucket=BUCKET, Key="a.txt", Body=b"hello")
+    original = Clients._client
+
+    def patched(self, service, region, endpoint, config):
+        client = original(self, service, region, endpoint, config)
+        client.meta.events.register("after-call.s3.GetObject", _failing_read(error))
+        return client
+
+    monkeypatch.setattr(Clients, "_client", patched)
+    with pytest.raises(ToolError, match=message) as raised:
+        await call(server, "object_get_text", bucket=BUCKET, key="a.txt")
+    assert FAKE_SECRET_KEY not in str(raised.value)
 
 
 async def test_object_tagging_get_returns_tags(server, s3):

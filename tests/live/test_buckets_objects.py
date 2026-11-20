@@ -65,6 +65,15 @@ async def test_object_put_get_copy_rename_delete(live_server, bucket):
     assert await _keys(live_server, bucket, "notes/") == []
 
 
+async def test_object_get_text_after_append(live_server, bucket):
+    # The bucket comes from new_name, so the finalizer empties and deletes it.
+    key = "append/log.txt"
+    await call(live_server, "object_put_text", bucket=bucket, key=key, text="first line\n")
+    await call(live_server, "object_append", bucket=bucket, key=key, text="second line\n")
+    read = await call(live_server, "object_get_text", bucket=bucket, key=key)
+    assert read["text"] == "first line\nsecond line\n"
+
+
 async def test_presigned_get_downloads_over_http(live_server, bucket):
     await call(live_server, "object_put_text", bucket=bucket, key="share/file.txt", text="shared")
     result = await call(
