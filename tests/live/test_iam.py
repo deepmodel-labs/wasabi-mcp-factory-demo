@@ -3,8 +3,6 @@ ValidatePolicy (PRD section 6.12)."""
 
 from __future__ import annotations
 
-import json
-
 import pytest
 
 from tests.helpers import ToolError, call
@@ -71,12 +69,18 @@ LIST_BUCKETS_POLICY = {
     "Version": "2012-10-17",
     "Statement": [{"Effect": "Allow", "Action": "s3:ListAllMyBuckets", "Resource": "*"}],
 }
+# Valid JSON, so it reaches Wasabi, but not a valid policy: Action must be a string or list.
+SYNTAX_ERROR_POLICY = {
+    "Version": "2012-10-17",
+    "Statement": [{"Effect": "Allow", "Action": 42, "Resource": "*"}],
+}
 
 
 async def test_iam_policy_validate_identity_policy(live_server):
-    # The default is_principal=true lints it as an identity policy: no Principal needed.
+    # The default is_principal=true omits IsPrincipal: an identity policy, no Principal needed.
     linted = await call(live_server, "iam_policy_validate", policy_document=LIST_BUCKETS_POLICY)
     assert "validation" in linted
+    assert "evaluation" not in linted
 
     evaluated = await call(
         live_server,
@@ -86,5 +90,7 @@ async def test_iam_policy_validate_identity_policy(live_server):
         use_resource="*",
         use_service="s3",
     )
-    # Wasabi's exact response shape is unconfirmed, so look for ALLOW anywhere in it.
-    assert "ALLOW" in json.dumps(evaluated["validation"])
+    assert evaluated["evaluation"] == "Allow"
+
+    with pytest.raises(ToolError, match="MalformedPolicyDocument"):
+        await call(live_server, "iam_policy_validate", policy_document=SYNTAX_ERROR_POLICY)

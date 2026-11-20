@@ -26,10 +26,6 @@ from wasabi_mcp.tools._iam import (
 ServiceName = Literal["iam", "sts", "s3"]
 
 
-def _flag(value: bool) -> str:
-    return "true" if value else "false"
-
-
 def register(server: MCPServer, ctx: ToolContext) -> None:
     settings = ctx.settings
     clients = ctx.clients
@@ -197,22 +193,25 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
     ) -> dict[str, Any]:
         """Lint a policy with Wasabi's ValidatePolicy and, given use_action, use_resource
         and use_service (iam, sts or s3), evaluate it for the signer. is_principal=true
-        (default) for an identity policy, false for a resource policy. Returns Wasabi's lint
-        and evaluation result as JSON in `validation` (ALLOW, DENY or none, and any lint
-        messages). A Wasabi error is returned as an error with its code and message, never
-        as a passing result. Wasabi's exact ValidatePolicy encoding is unconfirmed: the
-        request follows its docs (signed form POST, PolicyDocument as JSON, IsPrincipal
-        true/false) and Wasabi's error is passed back as is."""
+        (default) for an identity policy (IsPrincipal is left out of the request, as Wasabi
+        requires), false for a resource policy (sends IsPrincipal=false). Returns Wasabi's
+        result as JSON in `validation`, plus `evaluation` (Allow or Deny, as Wasabi sends
+        it) when the policy was evaluated. A Wasabi error is returned as an error with its
+        code, message and any detail, never as a passing result."""
         document = policy_json(policy_document)
         root = rest.iam_query(
             settings,
             "ValidatePolicy",
             {
                 "PolicyDocument": document,
-                "IsPrincipal": _flag(is_principal),
+                "IsPrincipal": None if is_principal else "false",
                 "UseAction": use_action,
                 "UseResource": use_resource,
                 "UseService": use_service,
             },
         )
-        return {"validation": query_result(root, "ValidatePolicy")}
+        result: dict[str, Any] = {"validation": query_result(root, "ValidatePolicy")}
+        evaluation = (root.findtext(".//Evaluation") or "").strip()
+        if evaluation:
+            result["evaluation"] = evaluation
+        return result

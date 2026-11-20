@@ -149,6 +149,57 @@ def test_iam_query_raises_an_error_body_sent_with_200(rest_settings):
 
 
 @respx.mock
+def test_iam_query_parses_the_action_response_out_of_a_malformed_body(rest_settings):
+    respx.post(f"{FAKE['iam']}/").mock(
+        return_value=httpx.Response(
+            200,
+            content=b'<ValidatePolicyResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">'
+            b"<ValidatePolicyResult><Evaluation>Allow</Evaluation></ValidatePolicyResult>"
+            b"</ValidatePolicyResponse>"
+            b"<ResponseMetadata><RequestId>r1</RequestId></ResponseMetadata>"
+            b"</CreatePolicyVersionResponse>",
+        )
+    )
+    root = rest.iam_query(rest_settings, "ValidatePolicy", {})
+    assert root.tag == "ValidatePolicyResponse"
+    assert root.findtext("ValidatePolicyResult/Evaluation") == "Allow"
+
+
+@respx.mock
+@pytest.mark.parametrize("body", [b"", b"not xml", b"<OtherResponse></Mismatch>"])
+def test_iam_query_refuses_a_body_that_isnt_xml(rest_settings, body):
+    respx.post(f"{FAKE['iam']}/").mock(return_value=httpx.Response(200, content=body))
+    with pytest.raises(ToolRefused) as exc:
+        rest.iam_query(rest_settings, "ValidatePolicy", {})
+    assert str(exc.value) == "ValidatePolicy failed: the response wasn't valid XML"
+
+
+@respx.mock
+@pytest.mark.parametrize("status", [400, 200])
+def test_iam_query_appends_the_error_detail(rest_settings, status):
+    body = (
+        b"<ErrorResponse><Error><Code>MalformedPolicyDocument</Code>"
+        b"<Message>Syntax errors in policy.</Message><Detail>bad token</Detail></Error>"
+        b"</ErrorResponse>"
+    )
+    respx.post(f"{FAKE['iam']}/").mock(return_value=httpx.Response(status, content=body))
+    with pytest.raises(ToolRefused) as exc:
+        rest.iam_query(rest_settings, "ValidatePolicy", {})
+    assert str(exc.value) == (
+        "ValidatePolicy failed: MalformedPolicyDocument: Syntax errors in policy. (bad token)"
+    )
+
+
+@respx.mock
+def test_signed_s3_appends_the_error_detail(rest_settings):
+    body = b"<Error><Code>InvalidArgument</Code><Message>Bad</Message><Detail>why</Detail></Error>"
+    respx.route(host="s3.wasabi.test").mock(return_value=httpx.Response(400, content=body))
+    with pytest.raises(ToolRefused) as exc:
+        rest.signed_s3(rest_settings, "GET", "bucket", action="GetThing")
+    assert str(exc.value) == "GetThing failed: InvalidArgument: Bad (why)"
+
+
+@respx.mock
 def test_iam_query_percent_encodes_fields_like_botocore(rest_settings):
     route = respx.post(f"{FAKE['iam']}/").mock(
         return_value=httpx.Response(200, content=b"<GetUserMFAResponse/>")
