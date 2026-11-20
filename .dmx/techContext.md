@@ -18,6 +18,13 @@
 - moto drops the replication Role, `And` filters and DeleteMarkerReplication status when read back. Check the sent parameters with a botocore `provide-client-params.s3.PutBucketReplication` hook instead.
 - Wasabi doesn't document the response shape of `PUT /bucket?manifestCreateAndProcess` (replication backfill). `bucket_replication_backfill` reads a JobId (or Id) from either JSON or XML. Confirm the real shape in the live suite (ticket 24).
 - Wasabi Stats API: query names are `from`, `to` (YYYY-MM-DD), `latest`, `includeRegional`, `pageNum`, `pageSize` (max 100). Responses are `{Records, RecordCount, PageCount}` with the counts only on page 0. Bucket records name the bucket in `Bucket`; `PaddedStorageSizeBytes` is treated as active storage. Confirm in the live suite (ticket 24).
+- For Wasabi-only behaviour on IAM/STS boto3 calls (which respx can't see), use botocore's `Stubber`; respx only for `rest.py` helpers.
+- moto 5.2 IAM gaps: ignores `MaxItems`/`Marker` on ListUsers/ListGroups and `PathPrefix` on ListGroups, never raises `DeleteConflict`, doesn't error on UpdateGroup for a missing group, and reports `PasswordResetRequired=false` whatever was sent.
+- botocore already URL-decodes and parses IAM policy documents (its `json_decode_policies` handler), so boto3 returns them as dicts.
+- moto 5.2 deletes a managed policy that's still attached (no `DeleteConflict`), but does raise `DeleteConflict` for DeleteRole with attached policies and `LimitExceeded` on a sixth policy version.
+- `tests.helpers.call` unwraps a result that is exactly `{"result": ...}`, so a tool must not return a dict whose only key is `result`.
+- moto 5.2 ListVirtualMFADevices returns each device's `Base32StringSeed` and `QRCodePNG` (as bytes); tools that list MFA devices must strip them.
+- Wasabi's ValidatePolicy and GetUserMFA response shapes aren't documented in the PRD: the tools return the `<ActionResult>` element as JSON, and unit tests use plausible XML. Live tests should confirm the real shapes.
 
 ## Dev setup (once ticket 0 lands)
 - `uv sync`
