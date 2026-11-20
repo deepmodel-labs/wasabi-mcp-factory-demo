@@ -9,3 +9,4 @@
 - dev loop completed (outcome: success) — chained to validate (job `gh-28`).
 - validate loop completed (outcome: success) — chained to release (job `gh-28`).
 - PR opened for: iam_policy_validate: omit IsPrincipal for identity policies; parse Wasabi's malformed response.
+- release loop completed (outcome: success) (job `gh-28`).
