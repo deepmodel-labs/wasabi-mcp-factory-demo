@@ -1,0 +1,23 @@
+{
+  "commit": "5c9bd3a029cd39096430cbfa9136931b3a6b76c9",
+  "scope_items": [
+    {"item": "Respx test checks outgoing ValidatePolicy request encodes PolicyDocument and IsPrincipal as documented, for is_principal true and false", "verdict": "covered", "evidence": "tests/tools/test_iam_policy_bindings.py:test_policy_validate_encodes_the_request_as_documented (parametrized is_principal true/false, dict and JSON string)"},
+    {"item": "When is_principal isn't passed, the request is sent with IsPrincipal true", "verdict": "covered", "evidence": "tests/tools/test_iam_policy_bindings.py:test_policy_validate_defaults_is_principal_to_true"},
+    {"item": "Mocked success returns Wasabi's lint and evaluation result; mocked MalformedPolicy returns a clear error with Wasabi's code and message", "verdict": "covered", "evidence": "tests/tools/test_iam_policy_bindings.py:test_policy_validate_returns_the_evaluation_and_lint_result, test_policy_validate_returns_a_lint_only_result, test_policy_validate_reports_wasabi_malformed_policy (400 and 200)"},
+    {"item": "use_action, use_resource and use_service appear as documented when set and are left out when not set", "verdict": "covered", "evidence": "tests/tools/test_iam_policy_bindings.py:test_policy_validate_sends_evaluation_fields_when_set, test_policy_validate_omits_evaluation_fields_when_not_set"},
+    {"item": "Live-marked test in tests/live/ validates the s3:ListAllMyBuckets-on-* identity policy and skips unless WASABI_LIVE=1; tool description notes unconfirmed encoding", "verdict": "covered", "evidence": "tests/live/test_iam.py:76 (pytestmark live, skipped without WASABI_LIVE); src/wasabi_mcp/tools/iam_policy_bindings.py:198-205"},
+    {"item": "A 2xx response with an <Error> Code body becomes ToolRefused, never a passing result; GetUserMFA keeps working", "verdict": "covered", "evidence": "src/wasabi_mcp/rest.py:155-160; tests/test_rest.py:test_iam_query_raises_an_error_body_sent_with_200"},
+    {"item": "PolicyDocument JSON-encoded once and URL-encoded once (botocore-style percent-encoding)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/_iam.py:148; src/wasabi_mcp/rest.py:147; tests/test_rest.py:test_iam_query_percent_encodes_fields_like_botocore"},
+    {"item": "Docs updated and docs/tools.md regenerated", "verdict": "covered", "evidence": "docs/tools/iam_policy_bindings.md:12; docs/tools.md:248"},
+    {"item": "techContext.md note on confirmed vs open ValidatePolicy encoding and response shape", "verdict": "covered", "evidence": ".dmx/techContext.md:29,54"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "policy_document passed as a JSON string is not double-encoded", "addressed": true, "evidence": "tests/tools/test_iam_policy_bindings.py:test_policy_validate_encodes_the_request_as_documented[as_string=True]"},
+    {"description": "Spaces in form fields encoded as %20 rather than +", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:147"},
+    {"description": "Error body returned with HTTP 200", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:155-160"},
+    {"description": "Empty ValidatePolicyResult returns empty validation dict", "addressed": true, "evidence": "tests/tools/test_iam_policy_bindings.py:test_policy_validate_returns_an_empty_result"},
+    {"description": "Compact JSON separators change applies to all policy_json callers (policy create/version, inline put, role trust policy)", "addressed": true, "evidence": "src/wasabi_mcp/tools/_iam.py:148; full suite passes (1272 passed)"}
+  ]
+}

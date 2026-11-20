@@ -1,0 +1,24 @@
+{
+  "loop_name": "release",
+  "job_id": "gh-24",
+  "task_id": "1868058c-f7d6-434e-b17e-3181bde95519",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "prune-jobs",
+    "create-pr"
+  ],
+  "skills_completed": [
+    "prune-jobs"
+  ],
+  "skill_outputs": {
+    "prune-jobs": "No finished jobs to remove. All other jobs finished less than 30 days ago; gh-24 kept as the current ticket. No jobs kept for open learnings or decisions. No commit made."
+  },
+  "validator_results": [],
+  "outcome": null,
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T07:39:46.214048+00:00",
+  "updated_at": "2026-11-20T07:40:33.728556+00:00",
+  "validation_started_at": null,
+  "finish_message": null
+}

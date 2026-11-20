@@ -1,0 +1,58 @@
+{
+  "loop_name": "validate",
+  "job_id": "gh-24",
+  "task_id": "881138ae-40a1-45b4-87ed-6806820926ef",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "validate"
+  ],
+  "skills_completed": [
+    "validate"
+  ],
+  "skill_outputs": {
+    "validate": "Validated branch bug-gh-24-fix-iampolicyvalidate-validatepolicy at 5c9bd3a against spec/tasks for gh-24.\nTasks 10/10 complete; all 5 acceptance criteria covered (respx request encoding true/false, default IsPrincipal=true, success/MalformedPolicy at 400 and 200, optional Use* fields, live test skipped without WASABI_LIVE=1, unconfirmed-encoding note in description/docs).\nruff check, ruff format --check, pytest: 1272 passed, 12 deselected; live IAM tests confirmed skipped.\nNo scope creep, no regressions, no security issues.\nSuggestion: rest.py 2xx error detection uses .//Error and could misfire if a success body ever nests <Error><Code>; nit: duplicated error-message formatting.\nWrote .dmx/jobs/gh-24/validation-report.json. Verdict: READY FOR PR."
+  },
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "Tests passed \u2014 ran `uv run ruff check . && uv run ruff format --check . && uv run pytest -q` (exit 0)",
+      "checks": [
+        {
+          "name": "tests_pass",
+          "pass": true,
+          "message": "154 files already formatted\n........................................................................ [  5%]\n........................................................................ [ 11%]\n........................................................................ [ 16%]\n........................................................................ [ 22%]\n........................................................................ [ 28%]\n........................................................................ [ 33%]\n........................................................................ [ 39%]\n........................................................................ [ 45%]\n........................................................................ [ 50%]\n........................................................................ [ 56%]\n........................................................................ [ 62%]\n........................................................................ [ 67%]\n........................................................................ [ 73%]\n........................................................................ [ 79%]\n........................................................................ [ 84%]\n........................................................................ [ 90%]\n........................................................................ [ 96%]\n................................................                         [100%]\n1272 passed, 12 deselected in 485.97s (0:08:05)"
+        }
+      ],
+      "tool": "run_tests"
+    },
+    {
+      "pass": true,
+      "message": "Spec adherence check passed",
+      "checks": [
+        {
+          "name": "scope_matches_spec",
+          "pass": true,
+          "message": "All 9 scope item(s) covered in the diff"
+        },
+        {
+          "name": "edge_cases_addressed",
+          "pass": true,
+          "message": "All 5 flagged edge case(s) addressed"
+        },
+        {
+          "name": "no_regressions",
+          "pass": true,
+          "message": "No regressions found in the diff"
+        }
+      ],
+      "tool": "spec_adherence"
+    }
+  ],
+  "outcome": "success",
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T07:21:13.904773+00:00",
+  "updated_at": "2026-11-20T07:39:46.215216+00:00",
+  "validation_started_at": "2026-11-20T07:31:32.630417+00:00",
+  "finish_message": "**validate loop \u2014 complete** (outcome: `success`)\n\nChaining automatically to **release** loop.\n\nLOOP RUNTIME \u2014 do not suggest workflow commands or alternative paths.\n\nNext skill: `prune-jobs` (Loop: release | Skill 1/2) | Job: `gh-24` | Task: `1868058c`\nTicket files: `.dmx/jobs/gh-24/spec.md`, `tasks.md`, `activeContext.md` (in that folder).\n\nREQUIRED: Call `get_skill_definition` with name=`prune-jobs` to fetch the skill instructions, then execute them exactly as written.\n\nREQUIRED: When the skill finishes, you MUST immediately call the `loop_advance` MCP tool with `skill`=`prune-jobs` and, as the `output` argument, a summary of what the skill did in 10 lines or fewer. Do not wait for user input. Do not suggest next steps. Call loop_advance."
+}
