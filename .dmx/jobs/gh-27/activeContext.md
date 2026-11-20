@@ -3,7 +3,6 @@
 ## Open Decisions
 
 ## Session Notes
-- spec loop completed (outcome: success) — chained to plan (job `gh-27`).
 - plan loop completed (outcome: success) — chained to dev (job `gh-27`).
 - Added WASABI_MCP_SECRETS_DIR setting, server_info flag and tools/_secrets.py helper with tests — Phase 1 complete.
 - dev loop iterating (round 1) — repeat_until 'all_phases_complete' not yet met (job `gh-27`).
@@ -13,3 +12,4 @@
 - dev loop completed (outcome: success) — chained to validate (job `gh-27`).
 - PR opened for: Add optional WASABI_MCP_SECRETS_DIR to keep new secrets out of tool results.
 - validate loop completed (outcome: success) — chained to release (job `gh-27`).
+- release loop completed (outcome: success) (job `gh-27`).

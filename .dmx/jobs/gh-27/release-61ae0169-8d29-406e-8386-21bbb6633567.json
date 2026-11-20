@@ -3,22 +3,47 @@
   "job_id": "gh-27",
   "task_id": "61ae0169-8d29-406e-8386-21bbb6633567",
   "status": "complete",
-  "current_skill_index": 1,
+  "current_skill_index": 2,
   "skills": [
     "prune-jobs",
     "create-pr"
   ],
   "skills_completed": [
-    "prune-jobs"
+    "prune-jobs",
+    "create-pr"
   ],
   "skill_outputs": {
-    "prune-jobs": "No finished jobs to remove. prune_jobs (30-day default) kept every job: gh-27 is the current ticket, the others finished 0 days ago. None was kept for open learnings or decisions. No commit made."
+    "prune-jobs": "No finished jobs to remove. prune_jobs (30-day default) kept every job: gh-27 is the current ticket, the others finished 0 days ago. None was kept for open learnings or decisions. No commit made.",
+    "create-pr": "PR created: https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/pull/29 (base main, not draft)\nTitle: \"Feature | #27 Add Optional WASABI_MCP_SECRETS_DIR to Keep New Secrets Out of Tool Results\" (dmx default format; no repo convention found).\nMemory: durable learnings already in systemPatterns/techContext/productContext; no open learnings/decisions. Added PR session note, snapshot_loop_for_pr, committed ca4d9f2 \"chore: sync memory bank for gh-27\", pushed branch.\nTicket #27 labels: in-progress \u2192 in-review (feature kept).\nPush note: upstream tracking config couldn't be written (.git/config lock) but remote branch is at ca4d9f2."
   },
-  "validator_results": [],
-  "outcome": null,
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "PR ready check passed",
+      "checks": [
+        {
+          "name": "pr_exists",
+          "pass": true,
+          "message": "PR open: https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/pull/29"
+        },
+        {
+          "name": "ticket_transitioned",
+          "pass": true,
+          "message": "Ticket 'gh-27' transition not verified \u2014 requires ticketing API access. Confirm manually or override this validator for automated checking."
+        },
+        {
+          "name": "memory_updated",
+          "pass": true,
+          "message": "Memory bank files updated in the latest commit"
+        }
+      ],
+      "tool": "check_pr_ready"
+    }
+  ],
+  "outcome": "success",
   "iteration_count": 0,
   "timestamp": "2026-11-20T08:45:35.250944+00:00",
-  "updated_at": "2026-11-20T08:46:14.915791+00:00",
-  "validation_started_at": null,
-  "finish_message": null
+  "updated_at": "2026-11-20T08:47:14.571834+00:00",
+  "validation_started_at": "2026-11-20T08:47:11.215101+00:00",
+  "finish_message": "**release loop \u2014 complete \u2713**\n\nJob: `gh-27` | Outcome: `success`"
 }
