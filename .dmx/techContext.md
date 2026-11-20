@@ -17,6 +17,7 @@
 - moto PutBucketLogging needs the target bucket to grant log delivery: create it with `ACL="log-delivery-write"` in tests.
 - moto drops the replication Role, `And` filters and DeleteMarkerReplication status when read back. Check the sent parameters with a botocore `provide-client-params.s3.PutBucketReplication` hook instead.
 - Wasabi doesn't document the response shape of `PUT /bucket?manifestCreateAndProcess` (replication backfill). `bucket_replication_backfill` reads a JobId (or Id) from either JSON or XML. Confirm the real shape in the live suite (ticket 24).
+- Wasabi Stats API: query names are `from`, `to` (YYYY-MM-DD), `latest`, `includeRegional`, `pageNum`, `pageSize` (max 100). Responses are `{Records, RecordCount, PageCount}` with the counts only on page 0. Bucket records name the bucket in `Bucket`; `PaddedStorageSizeBytes` is treated as active storage. Confirm in the live suite (ticket 24).
 
 ## Dev setup (once ticket 0 lands)
 - `uv sync`

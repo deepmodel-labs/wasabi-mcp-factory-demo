@@ -1,0 +1,30 @@
+{
+  "commit": "169fdf5d14d2084384b2fb85f3b293defe0f05be",
+  "scope_items": [
+    {"item": "respx tests confirm each Stats tool calls the documented path on stats_url with the Authorization: <access key>:<secret key> header, and that parameters passed as None are omitted", "verdict": "covered", "evidence": "tests/tools/test_stats.py:67-154"},
+    {"item": "Paginated Stats responses expose page and next-page fields in the tool result", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/stats.py:157-194; tests/tools/test_stats.py:160-223"},
+    {"item": "When keys are missing (has_keys false), every Stats tool returns the clear missing-credentials ToolRefused and makes no request", "verdict": "covered", "evidence": "tests/tools/test_stats.py:48-61,236-243"},
+    {"item": "Scenario S1 output can be assembled: bucket_list plus stats_bucket_utilization_list give per-bucket stored bytes in the unit test", "verdict": "covered", "evidence": "tests/tools/test_stats.py:363-394 (stand-in bucket_list names, per spec Q1)"},
+    {"item": "New module tools/stats.py with register(server, ctx), four READ tools", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/stats.py:201-338"},
+    {"item": "stats_account_utilization_list: GET /v1/standalone/utilizations with date range, latest, include_regional, page params and *_human sizes", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/stats.py:229-245,125-135"},
+    {"item": "stats_bucket_utilization_list: GET /v1/standalone/utilizations/bucket; RecordCount/PageCount carried forward from page 0", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/stats.py:186-194,247-263"},
+    {"item": "stats_bucket_utilization_get: by bucket name or bucket number (exactly one)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/stats.py:265-284"},
+    {"item": "stats_usage_summary: latest-day totals and top top_n buckets by active storage", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/stats.py:286-338"},
+    {"item": "Pagination fields items, page_num, page_size, next_page_num, page_count, record_count, truncated", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/stats.py:175-183"},
+    {"item": "Input validation before any request (dates, range order, page bounds, bucket args, top_n)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/stats.py:39-73; tests/tools/test_stats.py:246-269"},
+    {"item": "401/403 re-raised as ToolRefused explaining root / WasabiAccountStatsAccess / WasabiBucketStatsAccess", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/stats.py:100-108; tests/tools/test_stats.py:272-295"},
+    {"item": "Docstrings carry the 6.13 metric notes", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/stats.py:1-7,238-242"},
+    {"item": "tests/tools/test_stats.py and docs/tools/stats.md", "verdict": "covered", "evidence": "tests/tools/test_stats.py; docs/tools/stats.md:1-10"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Bucket names with reserved characters are URL-quoted (safe='') so they cannot alter the request path", "addressed": true, "evidence": "src/wasabi_mcp/tools/stats.py:278"},
+    {"description": "Impossible dates (2026-02-30) and non-ISO formats refused", "addressed": true, "evidence": "src/wasabi_mcp/tools/stats.py:39-48; tests/tools/test_stats.py:250"},
+    {"description": "Bare-list responses without RecordCount/PageCount fall back to full-page heuristic", "addressed": true, "evidence": "src/wasabi_mcp/tools/stats.py:169-173; tests/tools/test_stats.py:212-223"},
+    {"description": "Summary bucket paging capped at 10 pages with truncated flag", "addressed": true, "evidence": "src/wasabi_mcp/tools/stats.py:299-309; tests/tools/test_stats.py:343-360"},
+    {"description": "Records missing PaddedStorageSizeBytes sort as 0 in top buckets", "addressed": true, "evidence": "src/wasabi_mcp/tools/stats.py:317-321"},
+    {"description": "Boolean values are excluded from *Bytes numeric detection and _human siblings", "addressed": true, "evidence": "src/wasabi_mcp/tools/stats.py:121-122"},
+    {"description": "Negative bucket_number is not validated before the request (Wasabi would reject it)", "addressed": false, "evidence": "src/wasabi_mcp/tools/stats.py:64-68"}
+  ]
+}
