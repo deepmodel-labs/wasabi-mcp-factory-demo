@@ -8,6 +8,9 @@
 - mcp 2.3.0 error handling: a tool exception reaches the client with its message only if it subclasses `mcp.server.mcpserver.exceptions.ToolError`, so `ToolRefused` does. In-process `MCPServer.call_tool` raises `ToolError` (`"Error executing tool <name>: <msg>"`) rather than returning `is_error`; `ToolAnnotations` is in `mcp.types`.
 - mcp 2.3.0 stdio client: `mcp.client.stdio.stdio_client(StdioServerParameters(...))` with `mcp.client.session.ClientSession`. `ThreadedMotoServer(port=0).get_host_and_port()` gives the bound port.
 - respx matches routes in registration order: register path-specific routes before broad `host=` routes.
+- Tool error messages in tests carry the SDK prefix `"Error executing tool <name>: "`, so `pytest.raises(match=...)` patterns must not anchor with `^`.
+- moto rejects bucket names under 3 characters, and returns 200 (not BucketAlreadyOwnedByYou) when re-creating an owned us-east-1 bucket.
+- respx only intercepts httpx; boto3 uses urllib3. Tests of `rest.signed_s3` tools on `rest_server` pass `region` explicitly so no boto3 GetBucketLocation lookup runs.
 
 ## Dev setup (once ticket 0 lands)
 - `uv sync`
