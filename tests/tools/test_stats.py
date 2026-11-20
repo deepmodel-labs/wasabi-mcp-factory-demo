@@ -392,3 +392,24 @@ async def test_scenario_s1_per_bucket_stored_bytes(rest_server):
         "empty": {"stored_bytes": 0, "stored": "0 B"},
     }
     no_secrets(stats)
+
+
+@pytest.mark.parametrize(
+    ("error", "reason"),
+    [
+        (httpx.ConnectError("[Errno 111] Connection refused"), "couldn't connect to"),
+        (httpx.ConnectError("[Errno -2] Name or service not known"), "couldn't resolve host"),
+        (httpx.ReadTimeout("timed out"), "timed out reading from"),
+    ],
+)
+@respx.mock
+async def test_network_errors_reach_the_client_with_operation_host_and_reason(
+    rest_server, error, reason
+):
+    respx.route(host="stats.wasabi.test").mock(side_effect=error)
+    with pytest.raises(ToolError) as excinfo:
+        await call(rest_server, "stats_account_utilization_list")
+    text = str(excinfo.value)
+    assert f"Stats API GET /v1/standalone/utilizations failed: {reason} stats.wasabi.test" in text
+    for secret in (*SECRETS, FAKE_ACCESS_KEY):
+        assert secret not in text

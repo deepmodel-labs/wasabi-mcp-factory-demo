@@ -1,0 +1,58 @@
+{
+  "loop_name": "validate",
+  "job_id": "gh-34",
+  "task_id": "c56f672b-e972-4c99-ad59-c305622e7ae2",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "validate"
+  ],
+  "skills_completed": [
+    "validate"
+  ],
+  "skill_outputs": {
+    "validate": "Validated gh-34 at f632049: verdict READY FOR PR.\nTasks 13/13 complete; all spec scope items and item ACs covered (connect/DNS/timeout messages with operation+host+reason, distinct messages, no secrets, 4xx/5xx unchanged).\nruff check, ruff format --check and pytest all pass (1371 passed, 13 deselected).\nNo scope creep, regressions or security findings.\nSuggestion: .dmx/techContext.md conflicts with origin/main (gh-19 added an adjacent line); keep both lines when updating the branch.\nWrote .dmx/jobs/gh-34/validation-report.json."
+  },
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "Tests passed \u2014 ran `uv run ruff check . && uv run ruff format --check . && uv run pytest -q` (exit 0)",
+      "checks": [
+        {
+          "name": "tests_pass",
+          "pass": true,
+          "message": "Downloading networkx (2.0MiB)\nDownloading pydantic-core (2.2MiB)\nDownloading cryptography (4.5MiB)\nDownloading sympy (6.0MiB)\nDownloading moto (6.9MiB)\nDownloading cfn-lint (5.6MiB)\n Downloaded pygments\n Downloaded pydantic-core\n Downloaded networkx\n Downloaded cryptography\n Downloaded ruff\n Downloaded moto\n Downloaded sympy\n Downloaded botocore\n Downloaded cfn-lint\n      Built wasabi-mcp @ file:///workspace/repo\nwarning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.\n         If the cache and target directories are on different filesystems, hardlinking may not be supported.\n         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.\nInstalled 84 packages in 1.18s"
+        }
+      ],
+      "tool": "run_tests"
+    },
+    {
+      "pass": true,
+      "message": "Spec adherence check passed",
+      "checks": [
+        {
+          "name": "scope_matches_spec",
+          "pass": true,
+          "message": "All 10 scope item(s) covered in the diff"
+        },
+        {
+          "name": "edge_cases_addressed",
+          "pass": true,
+          "message": "All 6 flagged edge case(s) addressed"
+        },
+        {
+          "name": "no_regressions",
+          "pass": true,
+          "message": "No regressions found in the diff"
+        }
+      ],
+      "tool": "spec_adherence"
+    }
+  ],
+  "outcome": "success",
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T11:26:50.570692+00:00",
+  "updated_at": "2026-11-20T11:50:55.587366+00:00",
+  "validation_started_at": "2026-11-20T11:42:01.833604+00:00",
+  "finish_message": "**validate loop \u2014 complete** (outcome: `success`)\n\nChaining automatically to **release** loop.\n\nLOOP RUNTIME \u2014 do not suggest workflow commands or alternative paths.\n\nNext skill: `prune-jobs` (Loop: release | Skill 1/2) | Job: `gh-34` | Task: `1fe71d19`\nTicket files: `.dmx/jobs/gh-34/spec.md`, `tasks.md`, `activeContext.md` (in that folder).\n\nREQUIRED: Call `get_skill_definition` with name=`prune-jobs` to fetch the skill instructions, then execute them exactly as written.\n\nREQUIRED: When the skill finishes, you MUST immediately call the `loop_advance` MCP tool with `skill`=`prune-jobs` and, as the `output` argument, a summary of what the skill did in 10 lines or fewer. Do not wait for user input. Do not suggest next steps. Call loop_advance."
+}

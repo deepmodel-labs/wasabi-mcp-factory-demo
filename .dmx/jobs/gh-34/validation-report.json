@@ -1,0 +1,25 @@
+{
+  "commit": "f6320498a19d036335a03657f7c412b934cc0660",
+  "scope_items": [
+    {"item": "rest.py: wrap the httpx call in _send (signed_s3, iam_query), stats_get and wacm_request; catch httpx.TransportError and raise ToolRefused from it", "verdict": "covered", "evidence": "src/wasabi_mcp/rest.py:167-175, 215, 239, 304, 341"},
+    {"item": "Private helper _transport_error classifying DNS / connect (refused, reset, unreachable) / timeout (connect, read, write, pool) / reset-or-closed / generic network error", "verdict": "covered", "evidence": "src/wasabi_mcp/rest.py:96-164"},
+    {"item": "Operation names match existing HTTP-error prefixes (action, action_name, Stats API GET <path>, WACM Connect <METHOD> <path>); _send takes the operation", "verdict": "covered", "evidence": "src/wasabi_mcp/rest.py:215, 239, 304, 341"},
+    {"item": "Only the host appears in the message; no query string, headers or str(exc)", "verdict": "covered", "evidence": "src/wasabi_mcp/rest.py:143-164; tests/test_rest.py:417"},
+    {"item": "respx tests in tests/test_rest.py and a tool-level test via rest_server covering refused, DNS, timeout and no secrets", "verdict": "covered", "evidence": "tests/test_rest.py:294-427; tests/tools/test_stats.py:406; tests/tools/test_objects_ext.py:450"},
+    {"item": "Update .dmx/systemPatterns.md / techContext.md with a one-line transport-error note", "verdict": "covered", "evidence": ".dmx/systemPatterns.md:10; .dmx/techContext.md:32"},
+    {"item": "AC: simulated connection error on a REST-path tool yields a client message with operation, host and reason", "verdict": "covered", "evidence": "tests/tools/test_objects_ext.py:450; tests/tools/test_stats.py:406; tests/test_rest.py:332"},
+    {"item": "AC: simulated DNS failure and simulated timeout each produce a clear, distinct message", "verdict": "covered", "evidence": "tests/test_rest.py:348, 354, 379, 403"},
+    {"item": "AC: error messages contain no credentials, signatures, signed query strings or Authorization values", "verdict": "covered", "evidence": "tests/test_rest.py:417; tests/tools/test_objects_ext.py:450"},
+    {"item": "AC: HTTP 4xx/5xx responses keep their current error handling", "verdict": "covered", "evidence": "src/wasabi_mcp/rest.py:216-218 unchanged; tests/test_rest.py:228, 253 unchanged and passing"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "ToolRefused raised by credential checks / region lookup must not be caught by the new handler", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:174 catches only httpx.TransportError; tests/test_rest.py:282"},
+    {"description": "DNS failure surfaced as socket.gaierror in the __cause__ chain rather than in the message", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:116-131; tests/test_rest.py:354"},
+    {"description": "Cyclic __cause__/__context__ chain when walking exceptions", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:116-123"},
+    {"description": "URL with no host", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:151 falls back to 'the server'"},
+    {"description": "object_append NoSuchKey create-on-missing fallback must not trigger on transport errors", "addressed": true, "evidence": "tests/tools/test_objects_ext.py:450 asserts a single request"},
+    {"description": "Exception text echoing a signed URL / Authorization header", "addressed": true, "evidence": "tests/test_rest.py:417"}
+  ]
+}
