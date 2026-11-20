@@ -1,0 +1,23 @@
+{
+  "commit": "b29333b92d43b9f4b4aaf19647cfe5de26e98d6e",
+  "scope_items": [
+    {"item": "When a tool raises an unexpected AttributeError, the client gets a short message naming the tool or action, with no exception class name or internal text", "verdict": "covered", "evidence": "src/wasabi_mcp/errors.py:69-78 (unexpected), tests/test_errors_boundary.py:67-73"},
+    {"item": "The same failure logs the exception details and traceback to stderr", "verdict": "covered", "evidence": "src/wasabi_mcp/errors.py:76-77 (logger.error on wasabi_mcp), tests/test_errors_boundary.py:76-91"},
+    {"item": "The stderr log for a failure whose exception text includes an access key secret or session token does not contain that value", "verdict": "covered", "evidence": "src/wasabi_mcp/errors.py:60-66 (redact), tests/test_errors_boundary.py:87-91, tests/test_errors.py:40-72"},
+    {"item": "Errors that are already user-facing (validation, confirm=true, ClientError, WMCP-13 transport errors) reach the client unchanged", "verdict": "covered", "evidence": "src/wasabi_mcp/errors.py:91-93 (ToolError/ResourceError/MCPError re-raised), tests/test_errors_boundary.py:98-127"},
+    {"item": "The change reuses the error helper from WMCP-13; the codebase has no second error-formatting helper", "verdict": "covered", "evidence": "src/wasabi_mcp/errors.py (extended in place), src/wasabi_mcp/server.py:43-73 (applied once in build_server)"},
+    {"item": "Apply the boundary once, centrally, in build_server with no tool module changes", "verdict": "covered", "evidence": "src/wasabi_mcp/server.py:43-73 (_GuardedServer proxy)"},
+    {"item": "Tests and a note in systemPatterns.md / docs", "verdict": "covered", "evidence": "tests/test_errors_boundary.py, tests/test_errors.py, .dmx/systemPatterns.md:10,20, docs/prd.md:98,196"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Async tools stay coroutine functions so the SDK awaits them", "addressed": true, "evidence": "src/wasabi_mcp/errors.py:87-98, tests/test_errors_boundary.py:94-95"},
+    {"description": "Tool input schemas unchanged after wrapping (functools.wraps / __wrapped__)", "addressed": true, "evidence": "tests/test_catalogue.py passes unchanged"},
+    {"description": "SDK does not log the raw exception via exc_info (our wrapper catches first)", "addressed": true, "evidence": "tests/test_errors_boundary.py:90-91"},
+    {"description": "Empty / unset configured credentials are skipped by redact", "addressed": true, "evidence": "src/wasabi_mcp/errors.py:63 (filter(None, ...))"},
+    {"description": "Overlapping configured secrets replaced longest-first", "addressed": true, "evidence": "src/wasabi_mcp/errors.py:63"},
+    {"description": "Tools registered other than via server.tool would bypass guard", "addressed": true, "evidence": "no add_tool/resource/prompt registrations in src/wasabi_mcp/tools"},
+    {"description": "BaseException (e.g. CancelledError) is not swallowed", "addressed": true, "evidence": "src/wasabi_mcp/errors.py:94 (except Exception only)"}
+  ]
+}
