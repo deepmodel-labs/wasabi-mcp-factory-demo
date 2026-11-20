@@ -7,7 +7,8 @@ import hmac
 import importlib
 import ipaddress
 import os
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, TypeVar
 
 import uvicorn
 from mcp.server.mcpserver import MCPServer
@@ -19,7 +20,10 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 from wasabi_mcp import __version__
 from wasabi_mcp.clients import Clients
 from wasabi_mcp.config import Settings
+from wasabi_mcp.errors import guard
 from wasabi_mcp.tools import ToolContext, discover_groups
+
+Fn = TypeVar("Fn", bound=Callable[..., Any])
 
 SERVER_NAME = "wasabi-mcp"
 
@@ -36,13 +40,36 @@ the operator sets WASABI_MCP_READ_ONLY=false. Destructive tools also need confir
 on each call. Call server_info to see the current mode, region and configured services."""
 
 
+class _GuardedServer:
+    """What each group's ``register`` receives: the server, with ``tool`` applying ``guard``.
+
+    Every other attribute is the real server's.
+    """
+
+    def __init__(self, server: MCPServer, settings: Settings) -> None:
+        self._server = server
+        self._settings = settings
+
+    def tool(self, name: str | None = None, **kwargs: Any) -> Callable[[Fn], Fn]:
+        def decorator(fn: Fn) -> Fn:
+            tool_name = name or fn.__name__
+            self._server.tool(name=tool_name, **kwargs)(guard(fn, tool_name, self._settings))
+            return fn
+
+        return decorator
+
+    def __getattr__(self, attr: str) -> Any:
+        return getattr(self._server, attr)
+
+
 def build_server(settings: Settings | None = None) -> MCPServer:
-    """An ``MCPServer`` with every discovered tool group registered."""
+    """An ``MCPServer`` with every discovered tool group registered behind ``errors.guard``."""
     resolved = settings if settings is not None else Settings.from_env()
     ctx = ToolContext(settings=resolved, clients=Clients(resolved))
     server = MCPServer(SERVER_NAME, instructions=INSTRUCTIONS, version=__version__)
+    guarded = _GuardedServer(server, resolved)
     for name in discover_groups():
-        importlib.import_module(f"wasabi_mcp.tools.{name}").register(server, ctx)
+        importlib.import_module(f"wasabi_mcp.tools.{name}").register(guarded, ctx)
     return server
 
 
