@@ -71,9 +71,9 @@ Details: [`docs/tools/transfer.md`](tools/transfer.md).
 
 | Tool | Kind | Description |
 |---|---|---|
-| `presign_get` | R | A presigned GET URL for an object, optionally a `version_id`. Returns `url`, `expires_seconds` and `expires_at`. |
+| `presign_get` | R | A presigned GET URL for an object, optionally a `version_id`. Returns `url`, `expires_seconds` and `expires_at`. In read-only mode the expiry is capped at 3,600 seconds, with a `note` when it was. |
 | `presign_put` | W | A presigned PUT URL that lets its holder upload to the key. With `content_type`, the upload must send that header (returned in `headers`). |
-| `presign_get_for_prefix` | R | Presigned GET URLs for every object under `prefix` whose key ends with `suffix` (optional), across as many listing pages as needed. At most `max_items` (default 100, at most 1,000) per call; each item has `key`, `size` and `url`. `next_token` resumes after the last key looked at. |
+| `presign_get_for_prefix` | R | Presigned GET URLs for every object under `prefix` whose key ends with `suffix` (optional), across as many listing pages as needed. At most `max_items` (default 100, at most 1,000) per call; each item has `key`, `size` and `url`. `next_token` resumes after the last key looked at. In read-only mode the expiry of every URL is capped at 3,600 seconds; the top-level `expires_seconds`/`expires_at` and `note` cover every item. |
 | `multipart_upload_list` | R | Incomplete multipart uploads in a bucket, optionally under `prefix`; each item has `key`, `upload_id` and `initiated`. Wasabi deletes incomplete uploads after about 31 days. List envelope with `max_items`/`continuation_token`. |
 | `multipart_part_list` | R | The parts uploaded so far for `upload_id`: `part_number`, `etag`, `size`, `last_modified`. List envelope. |
 | `multipart_upload_abort` | D | Aborts `upload_id` and discards its parts. Needs `confirm=true`. |

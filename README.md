@@ -113,6 +113,7 @@ If the file still can't be written after Wasabi created the credential, the tool
 - **The server starts read-only.** Every tool is marked read or write in its MCP annotations, and write tools refuse while `WASABI_MCP_READ_ONLY` is on.
 - **Destructive tools also need `confirm=true` in the call.** These are deletes and changes to policies or access.
 - **Credentials come only from the environment.** The server never logs or returns your configured credentials. Tools that create new credentials (IAM access keys, console passwords, MFA devices, STS sessions, sub-accounts) need `confirm=true` and return the new secret once, or write it to a private file instead when `WASABI_MCP_SECRETS_DIR` is set.
+- **Read-only download links last at most an hour.** In read-only mode `presign_get` and `presign_get_for_prefix` cap `expires_seconds` at 3,600 seconds (instead of up to 7 days) and say so in a `note`, so links cannot keep data reachable for days.
 - **HTTP stays on loopback unless you opt in.** A non-loopback `--host` needs `--allow-remote` and a `WASABI_MCP_HTTP_TOKEN` bearer token, and `Host` headers are always checked. See [Remote HTTP](#remote-http).
 
 ## Tools
