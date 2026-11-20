@@ -1,0 +1,24 @@
+{
+  "loop_name": "dev",
+  "job_id": "gh-19",
+  "task_id": "ffb63cda-5c30-480a-bf8e-19755ac59d67",
+  "status": "running",
+  "current_skill_index": 1,
+  "skills": [
+    "implement-next-phase",
+    "commit"
+  ],
+  "skills_completed": [
+    "implement-next-phase"
+  ],
+  "skill_outputs": {
+    "implement-next-phase": "Implemented Phase 1 (HTTP Security Core) in src/wasabi_mcp/server.py; all 7 tasks checked off in tasks.md.\n- Added is_loopback_host, allowed_hosts/split_hosts (hosts normalised to the SDK's forms), allowed_origins and BearerTokenMiddleware (hmac, 401 + WWW-Authenticate: Bearer).\n- http_app() builds the streamable-http app with explicit TransportSecuritySettings (DNS-rebinding protection on) and adds the token middleware only for remote.\n- main(): --allow-remote, repeatable --allowed-host, WASABI_MCP_HTTP_TOKEN and WASABI_MCP_ALLOWED_HOSTS; parser.error refuses a non-loopback host before build_server(); serves via uvicorn.run.\n- Smoke-tested: 401 without the token (on /mcp and on an unknown path), 200 initialize with it, 421 for a bad Host; refusals exit with code 2 and name the missing piece.\n- ruff passes and the full suite passes (1320 passed). Phase 2 (tests and docs) is not started."
+  },
+  "validator_results": [],
+  "outcome": null,
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T09:41:49.772982+00:00",
+  "updated_at": "2026-11-20T09:55:01.870495+00:00",
+  "validation_started_at": null,
+  "finish_message": null
+}
