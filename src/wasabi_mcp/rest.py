@@ -43,6 +43,11 @@ def parse_xml(content: bytes | str) -> ElementTree.Element:
     return root
 
 
+def _error_element(root: ElementTree.Element) -> ElementTree.Element | None:
+    """The ``<Error>`` of an S3 ``<Error>`` or IAM ``<ErrorResponse><Error>`` body."""
+    return root if root.tag == "Error" else root.find(".//Error")
+
+
 def _xml_error(response: httpx.Response) -> tuple[str, str]:
     """(code, message) from an S3 ``<Error>`` or IAM ``<ErrorResponse><Error>`` body."""
     try:
@@ -50,7 +55,7 @@ def _xml_error(response: httpx.Response) -> tuple[str, str]:
     except ElementTree.ParseError:
         root = None
     if root is not None:
-        error = root if root.tag == "Error" else root.find(".//Error")
+        error = _error_element(root)
         if error is not None:
             code = error.findtext("Code") or f"HTTP {response.status_code}"
             return code, error.findtext("Message") or response.reason_phrase
@@ -131,11 +136,15 @@ def signed_s3(
 def iam_query(
     settings: Settings, action_name: str, params: Mapping[str, Any] | None = None
 ) -> ElementTree.Element:
-    """A SigV4-signed (``iam``, us-east-1) Query API form POST; returns the parsed XML."""
+    """A SigV4-signed (``iam``, us-east-1) Query API form POST; returns the parsed XML.
+
+    Fields are percent-encoded as botocore does (a space is ``%20``, not ``+``). A 2xx
+    body holding an ``<Error>`` with a ``Code`` is raised like a non-2xx response.
+    """
     credentials = _require_keys(settings, action_name)
     fields = {"Action": action_name, "Version": IAM_VERSION}
     fields.update({k: str(v) for k, v in (params or {}).items() if v is not None})
-    body = urlencode(fields).encode()
+    body = urlencode(fields, quote_via=quote, safe="-_.~").encode()
     url = settings.iam_url + "/"
     headers = {"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"}
     signed = _sign(SigV4Auth(credentials, "iam", GLOBAL_REGION), "POST", url, headers, body)
@@ -143,7 +152,12 @@ def iam_query(
     if not response.is_success:
         code, message = _xml_error(response)
         raise ToolRefused(f"{action_name} failed: {code}: {message}")
-    return parse_xml(response.content)
+    root = parse_xml(response.content)
+    error = _error_element(root)
+    if error is not None and error.findtext("Code"):
+        message = error.findtext("Message") or "no message"
+        raise ToolRefused(f"{action_name} failed: {error.findtext('Code')}: {message}")
+    return root
 
 
 def _json(response: httpx.Response) -> Any:

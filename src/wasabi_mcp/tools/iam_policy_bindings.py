@@ -196,9 +196,13 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
         use_service: ServiceName | None = None,
     ) -> dict[str, Any]:
         """Lint a policy with Wasabi's ValidatePolicy and, given use_action, use_resource
-        and use_service (iam, sts or s3), evaluate it for the signer. is_principal=true for an
-        identity policy, false for a resource policy. Returns Wasabi's result as JSON in
-        `validation` (ALLOW, DENY or none, and any lint messages)."""
+        and use_service (iam, sts or s3), evaluate it for the signer. is_principal=true
+        (default) for an identity policy, false for a resource policy. Returns Wasabi's lint
+        and evaluation result as JSON in `validation` (ALLOW, DENY or none, and any lint
+        messages). A Wasabi error is returned as an error with its code and message, never
+        as a passing result. Wasabi's exact ValidatePolicy encoding is unconfirmed: the
+        request follows its docs (signed form POST, PolicyDocument as JSON, IsPrincipal
+        true/false) and Wasabi's error is passed back as is."""
         document = policy_json(policy_document)
         root = rest.iam_query(
             settings,

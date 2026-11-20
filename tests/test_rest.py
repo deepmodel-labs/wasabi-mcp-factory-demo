@@ -139,6 +139,25 @@ def test_iam_query_raises_the_iam_error(rest_settings):
 
 
 @respx.mock
+def test_iam_query_raises_an_error_body_sent_with_200(rest_settings):
+    respx.post(f"{FAKE['iam']}/").mock(return_value=httpx.Response(200, content=IAM_ERROR))
+    with pytest.raises(ToolRefused) as exc:
+        rest.iam_query(rest_settings, "GetUserMFA", {"UserName": "bob"})
+    assert str(exc.value) == (
+        "GetUserMFA failed: NoSuchEntity: The user with name bob cannot be found."
+    )
+
+
+@respx.mock
+def test_iam_query_percent_encodes_fields_like_botocore(rest_settings):
+    route = respx.post(f"{FAKE['iam']}/").mock(
+        return_value=httpx.Response(200, content=b"<GetUserMFAResponse/>")
+    )
+    rest.iam_query(rest_settings, "GetUserMFA", {"UserName": "a b/c"})
+    assert "UserName=a%20b%2Fc" in route.calls.last.request.content.decode()
+
+
+@respx.mock
 def test_stats_get_uses_key_pair_auth_and_drops_none(rest_settings):
     route = respx.get(f"{FAKE['stats']}/v1/standalone/utilizations").mock(
         return_value=httpx.Response(200, json={"Records": []})

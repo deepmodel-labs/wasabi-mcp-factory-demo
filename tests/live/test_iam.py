@@ -1,6 +1,9 @@
-"""Live IAM user, group, policy, attach and delete flow (PRD section 8.4)."""
+"""Live IAM user, group, policy, attach and delete flow (PRD section 8.4) and
+ValidatePolicy (PRD section 6.12)."""
 
 from __future__ import annotations
+
+import json
 
 import pytest
 
@@ -62,3 +65,26 @@ async def test_iam_user_group_policy_attach_and_delete(live_server, new_name):
         await call(live_server, "iam_group_get", group_name=group)
     with pytest.raises(ToolError, match="NoSuchEntity"):
         await call(live_server, "iam_policy_get", policy_arn=arn)
+
+
+LIST_BUCKETS_POLICY = {
+    "Version": "2012-10-17",
+    "Statement": [{"Effect": "Allow", "Action": "s3:ListAllMyBuckets", "Resource": "*"}],
+}
+
+
+async def test_iam_policy_validate_identity_policy(live_server):
+    # The default is_principal=true lints it as an identity policy: no Principal needed.
+    linted = await call(live_server, "iam_policy_validate", policy_document=LIST_BUCKETS_POLICY)
+    assert "validation" in linted
+
+    evaluated = await call(
+        live_server,
+        "iam_policy_validate",
+        policy_document=LIST_BUCKETS_POLICY,
+        use_action="s3:ListAllMyBuckets",
+        use_resource="*",
+        use_service="s3",
+    )
+    # Wasabi's exact response shape is unconfirmed, so look for ALLOW anywhere in it.
+    assert "ALLOW" in json.dumps(evaluated["validation"])
