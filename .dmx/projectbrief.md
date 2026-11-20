@@ -14,3 +14,5 @@
 
 ## Current state
 The repository holds only the PRD, README, licence and this dmx setup. There's no code yet. Ticket 0 (PRD section 4) creates the foundation.
+
+Ticket 0 (GH-1) builds the foundation: the package, config, clients, safety guards, error and REST helpers, `server_info`, the test harness and the CI workflow draft. Tickets 1–23 add tool groups on top of it.

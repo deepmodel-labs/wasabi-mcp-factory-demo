@@ -8,4 +8,6 @@ There's no code yet. The architecture to build is in `docs/prd.md` section 4 (th
 - **Results:** plain JSON via `clean()`. Lists use `{"items", "next_token", "truncated"}`. Optional configuration that's absent returns `{"configured": false}`.
 - **Errors:** `explain(exc, action)` for botocore; `rest.py` helpers raise `ToolRefused` themselves.
 - **Tests:** moto server fixtures (`settings`, `server`, `read_only_server`) for S3, IAM and STS; respx with `rest_settings` / `rest_server` (fake hosts in `conftest.FAKE`) for Wasabi extensions, Stats and WACM. `tests.helpers.call` calls tools as a client would. Live tests are marked `live`, go in `tests/live/`, and clean up after themselves.
+- **Reference group:** `tools/meta.py` (`server_info`) is the example to copy for a new group module. `ToolRefused` subclasses the SDK's `ToolError`, so its message is what the client sees.
+- **Secret checks in tests:** `tests/conftest.py` uses recognisable fake credentials and exposes `SECRETS`, so tests can assert that no secret appears in a tool's output.
 - **Parallel tickets:** tickets 1–23 add only their own module(s), test file(s) and `docs/tools/<module>.md`. They never edit shared files.

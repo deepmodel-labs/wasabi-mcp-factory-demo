@@ -2,24 +2,25 @@
   "loop_name": "dev",
   "job_id": "gh-1",
   "task_id": "36f853d1-75bc-4952-9451-716d0777178d",
-  "status": "running",
-  "current_skill_index": 1,
+  "status": "complete",
+  "current_skill_index": 2,
   "skills": [
     "implement-next-phase",
     "commit"
   ],
   "skills_completed": [
-    "implement-next-phase"
+    "implement-next-phase",
+    "commit"
   ],
   "skill_outputs": {
     "implement-next-phase": "Phase 3 (Test Harness, Foundation Tests, CI and Docs) done: all tasks across all phases are checked off. Not committed yet.\n- Tests: tests/__init__.py, tests/tools/__init__.py, helpers.py (call/ToolError), conftest.py (moto session server with urllib reset, settings/read_only_settings/server/read_only_server, FAKE, rest_settings/rest_server, live_settings), and test_config, test_safety, test_errors, test_clients, test_rest (respx) and test_server (incl. a stdio spawn of wasabi-mcp listing server_info).\n- CI: .github is blocked in the runner. Per the developer's answer, ci.yml is left to a maintainer; the exact YAML is in .dmx/jobs/gh-1/ci.yml for the PR description.\n- Also: the tools/__init__ docstring now lists the tool conventions (the README points there), pytest-asyncio loop scope is set, and the README has a server_info note.\n- uv run ruff check . && uv run ruff format --check . && uv run pytest -q passes (58 tests).",
-    "commit": "Committed ac44737: \"feat: add rest helpers, tool group framework, server_info and server entry\" (Closes #1).\n- Staged explicit paths only: src/wasabi_mcp/{rest,server}.py, src/wasabi_mcp/tools/{__init__,meta}.py, .dmx/techContext.md and .dmx/jobs/gh-1/*. Container artefacts are left untracked.\n- Memory bank: the stdio-client/moto-port and respx route-order learnings are promoted to techContext.md, and a Phase 2 session note is added.\n- No attribution trailers. Not pushed."
+    "commit": "Committed 2c73634: \"test: add shared test harness and foundation tests\" (Closes #1).\n- Staged explicit paths only: tests/*, pyproject.toml, README.md, src/wasabi_mcp/tools/__init__.py and .dmx/jobs/gh-1/* (incl. the ci.yml draft). Container artefacts are left untracked.\n- Memory bank: Phase 3 session note added. The branch-specific CI decision stays in Open Decisions for the PR step. No learnings to promote.\n- No attribution trailers. Not pushed."
   },
   "validator_results": [],
   "outcome": "success",
   "iteration_count": 2,
   "timestamp": "2026-11-19T23:58:07.059039+00:00",
-  "updated_at": "2026-11-20T00:16:20.006396+00:00",
-  "validation_started_at": null,
-  "finish_message": null
+  "updated_at": "2026-11-20T00:16:50.184690+00:00",
+  "validation_started_at": "2026-11-20T00:16:50.099515+00:00",
+  "finish_message": "**dev loop \u2014 complete** (outcome: `success`)\n\nChaining automatically to **validate** loop.\n\nMemory context (from `.dmx/jobs/gh-1/activeContext.md`):\nOpen Decisions:\n- Blocked: `.github` is mounted as /dev/null (char device) in the runner container, so `.github/workflows/ci.yml` can't be created here. Developer decided: skip ci.yml in this PR; a maintainer adds it. The exact YAML is in `.dmx/jobs/gh-1/ci.yml` and goes in the PR description.\n\nLOOP RUNTIME \u2014 do not suggest workflow commands or alternative paths.\n\nNext skill: `validate` (Loop: validate | Skill 1/1) | Job: `gh-1` | Task: `c78390a2`\nTicket files: `.dmx/jobs/gh-1/spec.md`, `tasks.md`, `activeContext.md` (in that folder).\n\nREQUIRED: Call `get_skill_definition` with name=`validate` to fetch the skill instructions, then execute them exactly as written.\n\nREQUIRED: When the skill finishes, you MUST immediately call the `loop_advance` MCP tool with `skill`=`validate` and, as the `output` argument, a summary of what the skill did in 10 lines or fewer. Do not wait for user input. Do not suggest next steps. Call loop_advance."
 }

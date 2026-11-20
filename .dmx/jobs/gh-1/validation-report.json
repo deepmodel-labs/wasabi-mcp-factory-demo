@@ -1,0 +1,32 @@
+{
+  "commit": "2c73634bb2fc5f36c6810f69af9649851fc10bce",
+  "scope_items": [
+    {"item": "Project (4.1): pyproject.toml, uv.lock, deps, dev group, wasabi-mcp console script, __main__, --transport, pytest and ruff config", "verdict": "covered", "evidence": "pyproject.toml:1-48, uv.lock, src/wasabi_mcp/__main__.py:1-4, src/wasabi_mcp/server.py:37-47"},
+    {"item": "config.py: frozen Settings, from_env for every section 7 variable, bool parsing, secrets repr=False, endpoint helpers, has_keys/has_wacm", "verdict": "covered", "evidence": "src/wasabi_mcp/config.py:19-98"},
+    {"item": "clients.py: Clients with cached s3(region) path-style, iam(), sts() for us-east-1, standard retries", "verdict": "covered", "evidence": "src/wasabi_mcp/clients.py:16-56"},
+    {"item": "safety.py: ToolRefused, require_writable (names WASABI_MCP_READ_ONLY=false), require_confirmed", "verdict": "covered", "evidence": "src/wasabi_mcp/safety.py:10-33"},
+    {"item": "errors.py: explain(exc, action) for ClientError and BotoCoreError", "verdict": "covered", "evidence": "src/wasabi_mcp/errors.py:10-22"},
+    {"item": "rest.py: signed_s3, iam_query, stats_get, wacm_request, parse_xml raising ToolRefused on non-2xx or missing credentials", "verdict": "covered", "evidence": "src/wasabi_mcp/rest.py:37-218"},
+    {"item": "tools/__init__.py: READ/WRITE/DESTRUCTIVE, ToolContext, discover_groups (meta first), clean()", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/__init__.py:33-75"},
+    {"item": "tools/meta.py: server_info (R), reference group module, no secrets", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/meta.py:13-35"},
+    {"item": "server.py: build_server with read-only-default instructions, registers discovered groups; main parses --transport", "verdict": "covered", "evidence": "src/wasabi_mcp/server.py:18-47"},
+    {"item": "Tests (4.3): conftest fixtures, helpers.call/ToolError, empty tests/__init__.py and tests/tools/__init__.py, foundation tests", "verdict": "covered", "evidence": "tests/conftest.py:1-116, tests/helpers.py:21-42, tests/tools/__init__.py, tests/test_*.py (58 passed)"},
+    {"item": "CI (4.4): .github/workflows/ci.yml with test and live jobs, permissions contents: read, astral-sh/setup-uv", "verdict": "partial", "evidence": ".dmx/jobs/gh-1/ci.yml:1-60 (draft only; .github is blocked in the runner, so per the recorded decision a maintainer adds the file from the PR description)"},
+    {"item": "README: short dev quick start only if missing", "verdict": "covered", "evidence": "README.md:24-25,48,69-72 (quick start already present; server_info note added)"},
+    {"item": "Done when: ruff check, ruff format --check and pytest -q pass locally (and in CI)", "verdict": "partial", "evidence": "Local run: ruff clean, 32 files formatted, 58 passed; CI can't run until ci.yml is added"},
+    {"item": "Done when: wasabi-mcp starts over stdio and lists server_info", "verdict": "covered", "evidence": "tests/test_server.py:110-122"},
+    {"item": "Done when: section 5 rules apply to server_info (annotations, results, no secrets)", "verdict": "covered", "evidence": "tests/test_server.py:45-67, src/wasabi_mcp/tools/meta.py:16-35"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Concurrent first use of Clients._client from SDK worker threads (sync tools run via anyio.to_thread) creates boto3 clients from one shared, non-thread-safe Session with no lock", "addressed": false, "evidence": "src/wasabi_mcp/clients.py:27-36"},
+    {"description": "Bare subresource query keys (None values) render as ?key and the signed URL matches the sent URL", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:67-79, tests/test_rest.py (test_signed_s3_sends_bare_subresources_unchanged)"},
+    {"description": "Missing credentials refuse before any network call for all four REST helpers", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:61-64,172,203-206, tests/test_rest.py (test_missing_credentials_refuse_before_any_request)"},
+    {"description": "Non-XML / empty error bodies on S3 and IAM fall back to HTTP status and reason", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:46-58, tests/test_rest.py (test_signed_s3_reports_status_when_the_error_has_no_body)"},
+    {"description": "Non-JSON error bodies from Stats/WACM fall back to raw text", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:155-163"},
+    {"description": "Empty or invalid WASABI_MCP_READ_ONLY values keep the default or raise a clear ValueError", "addressed": true, "evidence": "src/wasabi_mcp/config.py:19-28, tests/test_config.py"},
+    {"description": "Non-UTF-8 bytes in clean() are base64-encoded instead of failing", "addressed": true, "evidence": "src/wasabi_mcp/tools/__init__.py:70-74"},
+    {"description": "Override endpoints with trailing slash are normalised", "addressed": true, "evidence": "src/wasabi_mcp/config.py:70-90, tests/test_config.py (test_overrides_replace_every_default)"}
+  ]
+}

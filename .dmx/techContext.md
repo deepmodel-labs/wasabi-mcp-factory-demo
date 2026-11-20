@@ -18,3 +18,4 @@
 - Wasabi endpoints: `https://s3.<region>.wasabisys.com` (path-style), `https://iam.wasabisys.com`, `https://sts.wasabisys.com`, `https://stats.wasabisys.com` (not `api.stats...`), and `https://api.wacm.wasabisys.com/api`.
 - Build only from public documentation. Never copy code from Wasabi's official MCP server or any third-party Wasabi MCP project.
 - Never log or return the configured credentials.
+- The factory runner can't write `.github/` (it's mounted as /dev/null). Changes to `.github/workflows/ci.yml` go to a maintainer: put the exact YAML in the job folder and the PR description.
