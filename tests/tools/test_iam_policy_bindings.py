@@ -298,19 +298,105 @@ async def test_inline_policy_delete_refused_read_only(read_only_server):
 
 # iam_policy_validate (Wasabi extension via rest.iam_query)
 
+LIST_BUCKETS_POLICY = {
+    "Version": "2012-10-17",
+    "Statement": [{"Effect": "Allow", "Action": "s3:ListAllMyBuckets", "Resource": "*"}],
+}
+LINT_ONLY_RESPONSE = (
+    b'<ValidatePolicyResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">'
+    b"<ValidatePolicyResult><Messages><member><Severity>WARNING</Severity>"
+    b"<Text>Resource is broad</Text></member></Messages></ValidatePolicyResult>"
+    b"</ValidatePolicyResponse>"
+)
+MALFORMED_POLICY = (
+    b'<ErrorResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">'
+    b"<Error><Type>Sender</Type><Code>MalformedPolicy</Code>"
+    b"<Message>Missing required field Principal</Message></Error>"
+    b"<RequestId>r1</RequestId></ErrorResponse>"
+)
+OPTIONAL_FIELDS = {"UseAction", "UseResource", "UseService"}
+
+
+def _validate_route(content: bytes = VALIDATE_RESPONSE, status: int = 200) -> respx.Route:
+    return respx.post(f"{FAKE['iam']}/").mock(return_value=httpx.Response(status, content=content))
+
+
+def _form(route: respx.Route) -> dict[str, list[str]]:
+    return parse_qs(route.calls.last.request.content.decode(), keep_blank_values=True)
+
 
 @respx.mock
-async def test_policy_validate_sends_signed_form_post(rest_server):
-    route = respx.post(f"{FAKE['iam']}/").mock(
-        return_value=httpx.Response(200, content=VALIDATE_RESPONSE)
+@pytest.mark.parametrize("as_string", [False, True])
+@pytest.mark.parametrize(("is_principal", "flag"), [(True, "true"), (False, "false")])
+async def test_policy_validate_encodes_the_request_as_documented(
+    rest_server, is_principal, flag, as_string
+):
+    route = _validate_route()
+    document = json.dumps(LIST_BUCKETS_POLICY) if as_string else LIST_BUCKETS_POLICY
+    await call(
+        rest_server, "iam_policy_validate", policy_document=document, is_principal=is_principal
     )
-    result = await call(
+    request = route.calls.last.request
+    assert request.method == "POST"
+    assert request.url.path == "/"
+    assert not request.url.query
+    assert request.headers["content-type"].startswith("application/x-www-form-urlencoded")
+    assert request.headers["authorization"].startswith("AWS4-HMAC-SHA256 ")
+    assert "/us-east-1/iam/aws4_request" in request.headers["authorization"]
+    body = request.content.decode()
+    assert "+" not in body
+    form = _form(route)
+    assert form["Action"] == ["ValidatePolicy"]
+    assert form["Version"] == ["2010-05-08"]
+    # One form decode plus one JSON decode gives the policy back: not double-encoded.
+    [policy] = form["PolicyDocument"]
+    assert json.loads(policy) == LIST_BUCKETS_POLICY
+    assert policy.startswith("{")
+    assert form["IsPrincipal"] == [flag]
+
+
+@respx.mock
+async def test_policy_validate_defaults_is_principal_to_true(rest_server):
+    route = _validate_route()
+    await call(rest_server, "iam_policy_validate", policy_document=LIST_BUCKETS_POLICY)
+    assert _form(route)["IsPrincipal"] == ["true"]
+
+
+@respx.mock
+async def test_policy_validate_sends_evaluation_fields_when_set(rest_server):
+    route = _validate_route()
+    await call(
         rest_server,
         "iam_policy_validate",
         policy_document=READ_ONLY_POLICY,
-        is_principal=True,
         use_action="s3:GetObject",
         use_resource="arn:aws:s3:::bucket-x/a.txt",
+        use_service="s3",
+    )
+    form = _form(route)
+    assert form["UseAction"] == ["s3:GetObject"]
+    assert form["UseResource"] == ["arn:aws:s3:::bucket-x/a.txt"]
+    assert form["UseService"] == ["s3"]
+
+
+@respx.mock
+async def test_policy_validate_omits_evaluation_fields_when_not_set(rest_server):
+    route = _validate_route(LINT_ONLY_RESPONSE)
+    await call(rest_server, "iam_policy_validate", policy_document=READ_ONLY_POLICY)
+    form = _form(route)
+    assert set(form) == {"Action", "Version", "PolicyDocument", "IsPrincipal"}
+    assert not OPTIONAL_FIELDS & set(form)
+
+
+@respx.mock
+async def test_policy_validate_returns_the_evaluation_and_lint_result(rest_server):
+    _validate_route()
+    result = await call(
+        rest_server,
+        "iam_policy_validate",
+        policy_document=LIST_BUCKETS_POLICY,
+        use_action="s3:ListAllMyBuckets",
+        use_resource="*",
         use_service="s3",
     )
     assert result == {
@@ -319,45 +405,39 @@ async def test_policy_validate_sends_signed_form_post(rest_server):
             "Messages": [{"Severity": "WARNING", "Text": "Resource is broad"}],
         }
     }
-    request = route.calls.last.request
-    assert request.method == "POST"
-    assert request.headers["content-type"].startswith("application/x-www-form-urlencoded")
-    assert request.headers["authorization"].startswith("AWS4-HMAC-SHA256 ")
-    assert "/us-east-1/iam/aws4_request" in request.headers["authorization"]
-    form = parse_qs(request.content.decode())
-    assert form["Action"] == ["ValidatePolicy"]
-    assert form["Version"] == ["2010-05-08"]
-    assert json.loads(form["PolicyDocument"][0]) == READ_ONLY_POLICY
-    assert form["IsPrincipal"] == ["true"]
-    assert form["UseAction"] == ["s3:GetObject"]
-    assert form["UseResource"] == ["arn:aws:s3:::bucket-x/a.txt"]
-    assert form["UseService"] == ["s3"]
     assert_no_secrets(result)
 
 
 @respx.mock
-async def test_policy_validate_lint_only_omits_optional_fields(rest_server):
-    route = respx.post(f"{FAKE['iam']}/").mock(
-        return_value=httpx.Response(
-            200,
-            content=b"<ValidatePolicyResponse><ValidatePolicyResult/></ValidatePolicyResponse>",
-        )
-    )
-    result = await call(
-        rest_server,
-        "iam_policy_validate",
-        policy_document=json.dumps(READ_ONLY_POLICY),
-        is_principal=False,
-    )
+async def test_policy_validate_returns_a_lint_only_result(rest_server):
+    _validate_route(LINT_ONLY_RESPONSE)
+    result = await call(rest_server, "iam_policy_validate", policy_document=LIST_BUCKETS_POLICY)
+    assert result == {
+        "validation": {"Messages": [{"Severity": "WARNING", "Text": "Resource is broad"}]}
+    }
+
+
+@respx.mock
+async def test_policy_validate_returns_an_empty_result(rest_server):
+    _validate_route(b"<ValidatePolicyResponse><ValidatePolicyResult/></ValidatePolicyResponse>")
+    result = await call(rest_server, "iam_policy_validate", policy_document=LIST_BUCKETS_POLICY)
     assert result == {"validation": {}}
-    form = parse_qs(route.calls.last.request.content.decode())
-    assert set(form) == {"Action", "Version", "PolicyDocument", "IsPrincipal"}
-    assert form["IsPrincipal"] == ["false"]
+
+
+@respx.mock
+@pytest.mark.parametrize("status", [400, 200])
+async def test_policy_validate_reports_wasabi_malformed_policy(rest_server, status):
+    _validate_route(MALFORMED_POLICY, status)
+    with pytest.raises(
+        ToolError,
+        match="ValidatePolicy failed: MalformedPolicy: Missing required field Principal",
+    ):
+        await call(rest_server, "iam_policy_validate", policy_document=LIST_BUCKETS_POLICY)
 
 
 @respx.mock
 async def test_policy_validate_reports_wasabi_error(rest_server):
-    respx.post(f"{FAKE['iam']}/").mock(return_value=httpx.Response(400, content=IAM_ERROR))
+    _validate_route(IAM_ERROR, 400)
     with pytest.raises(ToolError, match="ValidatePolicy failed: MalformedPolicyDocument"):
         await call(rest_server, "iam_policy_validate", policy_document=READ_ONLY_POLICY)
 

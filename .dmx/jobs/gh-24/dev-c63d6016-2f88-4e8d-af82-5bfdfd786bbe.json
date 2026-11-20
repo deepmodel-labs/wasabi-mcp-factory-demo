@@ -1,0 +1,26 @@
+{
+  "loop_name": "dev",
+  "job_id": "gh-24",
+  "task_id": "c63d6016-2f88-4e8d-af82-5bfdfd786bbe",
+  "status": "complete",
+  "current_skill_index": 2,
+  "skills": [
+    "implement-next-phase",
+    "commit"
+  ],
+  "skills_completed": [
+    "implement-next-phase",
+    "commit"
+  ],
+  "skill_outputs": {
+    "implement-next-phase": "Phase 1 (all 10 tasks) done for gh-24; changes are uncommitted.\n- rest.iam_query: fields are now percent-encoded the way botocore does (%20, not +), and a 2xx body holding an <Error> with a Code raises ToolRefused \"<Action> failed: <Code>: <Message>\". GetUserMFA still works.\n- _iam.policy_json now emits compact JSON, encoded once.\n- iam_policy_validate docstring and docs/tools/iam_policy_bindings.md updated (result shape, how errors are returned, note that the encoding is unconfirmed); docs/tools.md regenerated.\n- New respx tests: request encoding for is_principal true/false with dict or string input, default IsPrincipal=true, Use* fields sent when set and left out when not, ALLOW+lint / lint-only / empty success results, MalformedPolicy on 400 and on 200.\n- New test_rest.py tests: an error body sent with 200, and percent-encoding.\n- New live test tests/live/test_iam.py::test_iam_policy_validate_identity_policy (s3:ListAllMyBuckets on *); skips without WASABI_LIVE=1.\n- techContext.md notes what's confirmed and what's still open. ruff passes; pytest: 1272 passed.",
+    "commit": "Committed 5c9bd3a \"fix: encode iam_policy_validate requests as wasabi documents\" (Closes #24) on bug-gh-24-fix-iampolicyvalidate-validatepolicy; not pushed.\n- Staged only the ticket's files (src, tests, docs, .dmx/techContext.md, .dmx/jobs/gh-24). Untracked environment files (.bashrc, .idea, scripts, etc.) were left out.\n- Memory bank: moved the urlencode/quote_plus learning to techContext.md and added a Phase 1 session note to activeContext.md.\n- No attribution trailers in the commit message."
+  },
+  "validator_results": [],
+  "outcome": "success",
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T07:04:54.949983+00:00",
+  "updated_at": "2026-11-20T07:21:13.905915+00:00",
+  "validation_started_at": "2026-11-20T07:21:13.815909+00:00",
+  "finish_message": "**dev loop \u2014 complete** (outcome: `success`)\n\nChaining automatically to **validate** loop.\n\nLOOP RUNTIME \u2014 do not suggest workflow commands or alternative paths.\n\nNext skill: `validate` (Loop: validate | Skill 1/1) | Job: `gh-24` | Task: `881138ae`\nTicket files: `.dmx/jobs/gh-24/spec.md`, `tasks.md`, `activeContext.md` (in that folder).\n\nREQUIRED: Call `get_skill_definition` with name=`validate` to fetch the skill instructions, then execute them exactly as written.\n\nREQUIRED: When the skill finishes, you MUST immediately call the `loop_advance` MCP tool with `skill`=`validate` and, as the `output` argument, a summary of what the skill did in 10 lines or fewer. Do not wait for user input. Do not suggest next steps. Call loop_advance."
+}

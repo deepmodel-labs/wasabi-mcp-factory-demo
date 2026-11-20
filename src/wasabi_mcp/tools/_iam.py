@@ -131,7 +131,8 @@ def collect(iam: Any, operation: str, key: str, action: str, **params: Any) -> l
 
 
 def policy_json(document: dict[str, Any] | str, field: str = "policy_document") -> str:
-    """A policy document given as a dict or JSON string, as the JSON string IAM expects.
+    """A policy document given as a dict or JSON string, as the compact JSON string IAM
+    expects, encoded exactly once (a JSON string is parsed and re-dumped, not quoted again).
 
     Invalid JSON, or JSON that isn't an object, is refused before any network call.
     """
@@ -144,7 +145,7 @@ def policy_json(document: dict[str, Any] | str, field: str = "policy_document") 
         parsed = document
     if not isinstance(parsed, dict):
         raise ToolRefused(f"{field} must be a JSON object")
-    return json.dumps(parsed)
+    return json.dumps(parsed, separators=(",", ":"))
 
 
 def decode_policy(document: Any) -> Any:
