@@ -19,3 +19,4 @@
 - Build only from public documentation. Never copy code from Wasabi's official MCP server or any third-party Wasabi MCP project.
 - Never log or return the configured credentials.
 - The factory runner can't write `.github/` (it's mounted as /dev/null). Changes to `.github/workflows/ci.yml` go to a maintainer: put the exact YAML in the job folder and the PR description.
+- A ranged GetObject on an empty object fails with `InvalidRange`; treat that as an empty body.
