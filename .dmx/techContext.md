@@ -11,6 +11,7 @@
 - Tool error messages in tests carry the SDK prefix `"Error executing tool <name>: "`, so `pytest.raises(match=...)` patterns must not anchor with `^`.
 - moto rejects bucket names under 3 characters, and returns 200 (not BucketAlreadyOwnedByYou) when re-creating an owned us-east-1 bucket.
 - respx only intercepts httpx; boto3 uses urllib3. Tests of `rest.signed_s3` tools on `rest_server` pass `region` explicitly so no boto3 GetBucketLocation lookup runs.
+- moto ignores explicit grants on PutObjectAcl (only canned ACLs take effect). To test them, register the group on a manually built `MCPServer` with its own `Clients` and capture the request with a botocore `before-call.s3.PutObjectAcl` hook.
 
 ## Dev setup (once ticket 0 lands)
 - `uv sync`

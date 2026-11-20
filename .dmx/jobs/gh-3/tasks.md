@@ -17,9 +17,9 @@ Every module follows PRD section 5 and the `tools/meta.py` pattern: `register(se
 - [x] Add `docs/tools/buckets.md` (name, kind, description table in catalogue order)
 
 ## Phase 2: Access — bucket policy and ACLs (`access.py`, 7 tools)
-- [ ] Add `src/wasabi_mcp/tools/access.py` with `bucket_policy_get` (JSON doc; `{"configured": false}` on NoSuchBucketPolicy), `bucket_policy_set` (dict or JSON str, validated before calling Wasabi; note about Wasabi account/canonical IDs), `bucket_policy_delete`
-- [ ] Add `bucket_acl_get`, `object_acl_get` (owner and grants, `version_id`) and `bucket_acl_set` / `object_acl_set` (`canned_acl` validated against private/public-read/public-read-write/authenticated-read, or explicit `grants`; exactly one required; description notes the public-bucket restriction for trial / post-2023-03-13 accounts)
-- [ ] Add `tests/tools/test_access.py` (moto happy paths, invalid JSON / invalid canned ACL rejected before any call, read-only and `confirm=false` refusals, policy-unchanged state checks) and `docs/tools/access.md`
+- [x] Add `src/wasabi_mcp/tools/access.py` with `bucket_policy_get` (JSON doc; `{"configured": false}` on NoSuchBucketPolicy), `bucket_policy_set` (dict or JSON str, validated before calling Wasabi; note about Wasabi account/canonical IDs), `bucket_policy_delete`
+- [x] Add `bucket_acl_get`, `object_acl_get` (owner and grants, `version_id`) and `bucket_acl_set` / `object_acl_set` (`canned_acl` validated against private/public-read/public-read-write/authenticated-read, or explicit `grants`; exactly one required; description notes the public-bucket restriction for trial / post-2023-03-13 accounts)
+- [x] Add `tests/tools/test_access.py` (moto happy paths, invalid JSON / invalid canned ACL rejected before any call, read-only and `confirm=false` refusals, policy-unchanged state checks) and `docs/tools/access.md`
 
 ## Phase 3: CORS and lifecycle (`bucket_rules.py`, 6 tools)
 - [ ] Add `src/wasabi_mcp/tools/bucket_rules.py` with `bucket_cors_get` (`{"configured": false}` on NoSuchCORSConfiguration; description mentions Wasabi's permissive default headers), `bucket_cors_set` (rules: allowed origins/methods/headers, expose headers, max age), `bucket_cors_delete`
