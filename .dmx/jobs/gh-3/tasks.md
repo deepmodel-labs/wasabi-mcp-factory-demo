@@ -22,9 +22,9 @@ Every module follows PRD section 5 and the `tools/meta.py` pattern: `register(se
 - [x] Add `tests/tools/test_access.py` (moto happy paths, invalid JSON / invalid canned ACL rejected before any call, read-only and `confirm=false` refusals, policy-unchanged state checks) and `docs/tools/access.md`
 
 ## Phase 3: CORS and lifecycle (`bucket_rules.py`, 6 tools)
-- [ ] Add `src/wasabi_mcp/tools/bucket_rules.py` with `bucket_cors_get` (`{"configured": false}` on NoSuchCORSConfiguration; description mentions Wasabi's permissive default headers), `bucket_cors_set` (rules: allowed origins/methods/headers, expose headers, max age), `bucket_cors_delete`
-- [ ] Add `bucket_lifecycle_get` (`{"configured": false}` on NoSuchLifecycleConfiguration), `bucket_lifecycle_set` (replaces all rules; rejects `Transitions`/`NoncurrentVersionTransitions` before calling Wasabi; description covers 00:00 UTC daily run, 24–48 h, locked objects, MFA Delete), `bucket_lifecycle_delete`
-- [ ] Add `tests/tools/test_bucket_rules.py` (moto happy paths incl. S5 90-day `tmp/` expiry, transition rejection, refusals) and `docs/tools/bucket_rules.md`
+- [x] Add `src/wasabi_mcp/tools/bucket_rules.py` with `bucket_cors_get` (`{"configured": false}` on NoSuchCORSConfiguration; description mentions Wasabi's permissive default headers), `bucket_cors_set` (rules: allowed origins/methods/headers, expose headers, max age), `bucket_cors_delete`
+- [x] Add `bucket_lifecycle_get` (`{"configured": false}` on NoSuchLifecycleConfiguration), `bucket_lifecycle_set` (replaces all rules; rejects `Transitions`/`NoncurrentVersionTransitions` before calling Wasabi; description covers 00:00 UTC daily run, 24–48 h, locked objects, MFA Delete), `bucket_lifecycle_delete`
+- [x] Add `tests/tools/test_bucket_rules.py` (moto happy paths incl. S5 90-day `tmp/` expiry, transition rejection, refusals) and `docs/tools/bucket_rules.md`
 
 ## Phase 4: Object Lock, retention and legal hold (`object_lock.py`, 6 tools)
 - [ ] Add `src/wasabi_mcp/tools/object_lock.py` with `bucket_object_lock_get` and `bucket_object_lock_set` (`mode` COMPLIANCE/GOVERNANCE, `days` xor `years`, `clear_default=true` sends `Enabled` only; description says lock can only be enabled at creation)

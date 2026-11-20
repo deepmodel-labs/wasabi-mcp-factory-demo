@@ -12,14 +12,14 @@
     "implement-next-phase"
   ],
   "skill_outputs": {
-    "implement-next-phase": "Phase 2 (Access: bucket policy and ACLs) implemented; its 3 tasks checked off in tasks.md.\n- Added src/wasabi_mcp/tools/access.py: the 7 tools bucket_policy_get/set/delete, bucket_acl_get/set, object_acl_get/set.\n- Policy is a dict or JSON string, validated (object with a Statement) before any call. get returns {\"configured\": false} on NoSuchBucketPolicy.\n- ACL set takes exactly one of canned_acl (validated) or grants ({permission, id|uri|email}) and returns the new ACL. Descriptions note Wasabi IDs and the 2023-03-13 public restriction.\n- Private per-module region helper for writes; D guards run before validation and before any network call.\n- Added tests/tools/test_access.py (26 tests: happy paths, invalid input, confirm and read-only refusals with state checks, errors) and docs/tools/access.md.\n- Full test_command passes (121 passed). Learning recorded: moto ignores explicit object grants, so that test checks the request body.",
-    "commit": "Committed 99ab463 on feature-gh-3-add-s3-bucket-and-bucket-configuration (not pushed).\nfeat: add bucket tools (list, get, create, delete, rename, versioning, tagging); footer Closes #3.\nStaged: buckets.py, tests/tools/test_buckets.py, docs/tools/buckets.md, the .dmx/jobs/gh-3 ticket files and loop state, .dmx/techContext.md.\nMemory: moved 3 testing learnings (SDK error prefix, moto bucket quirks, respx vs boto3 region lookup) to techContext.md; added a Phase 1 session note.\nLeft untracked environment files out (.bashrc, .idea, .mcp.json, scripts, etc.). No AI attribution trailers."
+    "implement-next-phase": "Phase 3 (CORS and lifecycle) implemented; its 3 tasks checked off in tasks.md.\n- Added src/wasabi_mcp/tools/bucket_rules.py: bucket_cors_get/set/delete and bucket_lifecycle_get/set/delete.\n- CORS rules are snake_case (allowed_origins/methods/headers, expose_headers, max_age_seconds, id), validated, and methods are checked against GET/PUT/POST/DELETE/HEAD.\n- Lifecycle rules are in S3 form. Transitions, unknown fields, unknown filter keys, a missing action and a bad Status are all rejected before calling Wasabi. Defaults: Status Enabled, whole-bucket filter.\n- The gets return {\"configured\": false} when nothing is set. Descriptions cover the CORS default headers and the 00:00 UTC / 24-48 h / locked objects / MFA Delete notes. Private region helper for writes.\n- Added tests/tools/test_bucket_rules.py (27 tests, including the S5 90-day tmp/ expiry) and docs/tools/bucket_rules.md.\n- Full test_command passes (148 passed).",
+    "commit": "Committed d7fa1dc on feature-gh-3-add-s3-bucket-and-bucket-configuration (not pushed).\nfeat: add bucket policy and ACL tools; footer Closes #3. No AI attribution trailers.\nStaged: access.py, tests/tools/test_access.py, docs/tools/access.md, the gh-3 ticket files and loop state, .dmx/techContext.md.\nMemory: moved the moto PutObjectAcl grant gap and how to test around it into techContext.md; added a Phase 2 session note.\nLeft untracked environment files out."
   },
   "validator_results": [],
   "outcome": "success",
-  "iteration_count": 1,
+  "iteration_count": 2,
   "timestamp": "2026-11-20T01:06:43.988914+00:00",
-  "updated_at": "2026-11-20T01:14:56.979653+00:00",
+  "updated_at": "2026-11-20T01:18:04.197733+00:00",
   "validation_started_at": null,
   "finish_message": null
 }
