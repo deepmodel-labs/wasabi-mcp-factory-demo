@@ -1,0 +1,31 @@
+{
+  "commit": "b99d3b430cdbe259d7bb789dda60ecefc6775d8e",
+  "scope_items": [
+    {"item": "wacm_accounts.py (9 tools: standalone accounts, storage amounts, countries, control accounts, control account usages and buckets)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/wacm_accounts.py:17-154"},
+    {"item": "wacm_channels.py (8 tools: channel account CRUD, delete says it unlinks sub-accounts; channel user create W, update D, delete D)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/wacm_channels.py:19-126"},
+    {"item": "wacm_sub_accounts.py (6 tools: list/get R, create/update(PATCH)/delete D, bucket_list R; create returns access_key_id/secret_access_key once)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/wacm_sub_accounts.py:44-189"},
+    {"item": "wacm_members.py (5 tools: list/get R, create/update/delete D)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/wacm_members.py:17-99"},
+    {"item": "wacm_billing.py (4 tools: invoice list/get, usage list/get)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/wacm_billing.py:41-111"},
+    {"item": "List tools take page and size; camelCase query filters with None dropped", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/_wacm.py:86-126; tests/tools/test_wacm_accounts.py:25"},
+    {"item": "HTTP 429: retry once after Retry-After (default 5 s), then report", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/_wacm.py:41-55; tests/tools/test_wacm_helper.py:18-50"},
+    {"item": "Tests for all five modules with respx against FAKE['wacm'] using rest_settings/rest_server", "verdict": "covered", "evidence": "tests/tools/test_wacm_accounts.py, test_wacm_channels.py, test_wacm_sub_accounts.py, test_wacm_members.py, test_wacm_billing.py, test_wacm_helper.py, test_wacm_unconfigured.py"},
+    {"item": "Docs for the five modules under docs/tools/", "verdict": "covered", "evidence": "docs/tools/wacm_accounts.md, wacm_channels.md, wacm_sub_accounts.md, wacm_members.md, wacm_billing.md"},
+    {"item": "AC: wacm_sub_account_create with a 10 TB hard quota sends the documented JSON body to wacm_url with Basic auth (S6)", "verdict": "covered", "evidence": "tests/tools/test_wacm_sub_accounts.py:46-77; tests/tools/wacm_support.py:21"},
+    {"item": "AC: wacm_sub_account_list and wacm_usage_list together give per-sub-account usage-vs-quota data for S7 (respx test)", "verdict": "covered", "evidence": "tests/tools/test_wacm_billing.py:31-61"},
+    {"item": "AC: when has_wacm is false, every WACM tool returns a ToolRefused naming the missing variables", "verdict": "covered", "evidence": "tests/tools/test_wacm_unconfigured.py:78-91"},
+    {"item": "AC: a WACM JSON error {error, code} comes back as HTTP <status>: <error>", "verdict": "covered", "evidence": "tests/tools/test_wacm_helper.py:42-50; tests/tools/test_wacm_sub_accounts.py:138-150; tests/tools/test_wacm_billing.py:117"},
+    {"item": "AC: WACM write tools refuse in read-only mode, and delete tools refuse without confirm=true", "verdict": "covered", "evidence": "tests/tools/test_wacm_channels.py:185-198; tests/tools/test_wacm_members.py:131-143; tests/tools/test_wacm_sub_accounts.py:272-284; tests/tools/test_wacm_accounts.py:76"},
+    {"item": "Any secret WACM returns on creation is returned only on confirmation", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/wacm_sub_accounts.py:93-121; tests/tools/test_wacm_sub_accounts.py:79-93"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Second consecutive HTTP 429 is reported rather than retried again", "addressed": true, "evidence": "tests/tools/test_wacm_helper.py:31"},
+    {"description": "Non-429 errors are not retried", "addressed": true, "evidence": "tests/tools/test_wacm_helper.py:42"},
+    {"description": "Page envelope variants: last page, totalPages only, no counts (full-page heuristic), bare list", "addressed": true, "evidence": "src/wasabi_mcp/tools/_wacm.py:94-117; tests/tools/test_wacm_helper.py:52-85"},
+    {"description": "Key/secret/password fields scrubbed at any depth from all responses except the create result's dedicated key fields", "addressed": true, "evidence": "src/wasabi_mcp/tools/_wacm.py:69-80; tests/tools/test_wacm_helper.py:87-104"},
+    {"description": "Sub-account create validates name length, password-or-welcome-email, and Hard quota needing purchased_storage_tb before any network call", "addressed": true, "evidence": "src/wasabi_mcp/tools/wacm_sub_accounts.py:94-101; tests/tools/test_wacm_sub_accounts.py:95"},
+    {"description": "Update tools refuse an empty change set", "addressed": true, "evidence": "src/wasabi_mcp/tools/wacm_sub_accounts.py:143; wacm_channels.py:71; wacm_members.py:88"},
+    {"description": "wacm_channel_user_update has no empty-body guard and would PUT {} when no fields are given (inconsistent with the other update tools; not harmful)", "addressed": false, "evidence": "src/wasabi_mcp/tools/wacm_channels.py:111-114"}
+  ]
+}

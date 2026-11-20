@@ -16,6 +16,7 @@
 - moto PutBucketLogging needs the target bucket to grant log delivery: create it with `ACL="log-delivery-write"` in tests.
 - moto drops the replication Role, `And` filters and DeleteMarkerReplication status when read back. Check the sent parameters with a botocore `provide-client-params.s3.PutBucketReplication` hook instead.
 - Wasabi doesn't document the response shape of `PUT /bucket?manifestCreateAndProcess` (replication backfill). `bucket_replication_backfill` reads a JobId (or Id) from either JSON or XML. Confirm the real shape in the live suite (ticket 24).
+- WACM Connect has no live tests: it needs a partner control account. Its page envelope field names and where `wacm_sub_account_create` puts the new keys are guessed from the docs, so `_wacm.page_result` and the create tool accept several variants. `rest.wacm_request` doesn't expose `Retry-After`, so the 429 retry always waits 5 s.
 
 ## Dev setup (once ticket 0 lands)
 - `uv sync`

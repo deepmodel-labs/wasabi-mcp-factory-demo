@@ -11,6 +11,7 @@ It's also a reference build for the DeepModel software factory. The repo, its is
 - Tools call Wasabi through boto3 (S3, IAM, STS) or httpx helpers (Wasabi extensions, Stats, WACM Connect), and return plain JSON.
 - Writes refuse while the server is read-only (`WASABI_MCP_READ_ONLY`, default `true`). Destructive tools also require `confirm=true`.
 - Bucket and bucket-configuration tools are built (GH-3): buckets; policy and ACLs; CORS and lifecycle; Object Lock, retention and legal hold; logging and inventory; replication and backfill. That's 40 tools.
+- WACM Connect tools are built (GH-6): standalone and control accounts, channel accounts and users, sub-accounts with quotas, members, invoices and usages. That's 32 tools. Without `WASABI_WACM_USERNAME` and `WASABI_WACM_API_KEY` they refuse and name both variables.
 
 ## Who uses it
 - Developers and operators who want an agent to work with their Wasabi account.
