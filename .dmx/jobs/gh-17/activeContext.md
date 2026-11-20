@@ -9,3 +9,4 @@
 - dev loop completed (outcome: success) — chained to validate (job `gh-17`).
 - validate loop completed (outcome: success) — chained to release (job `gh-17`).
 - PR opened for: Report unconfigured bucket tagging when Wasabi returns an empty tag set.
+- release loop completed (outcome: success) (job `gh-17`).
