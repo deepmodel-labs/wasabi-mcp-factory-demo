@@ -1,0 +1,27 @@
+{
+  "commit": "b2ec545e17d2c6376fd1588beb9de772ca103575",
+  "scope_items": [
+    {"item": "objects_read.py (PRD 6.2, 6 tools): object_list, object_version_list, object_get_info, object_get_text, object_tagging_get, object_search", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_read.py:167-431"},
+    {"item": "objects_write.py (PRD 6.3, 7 tools): object_put_text, object_copy, object_delete, object_delete_many, object_tagging_set, object_tagging_delete, object_metadata_update", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_write.py:83-331"},
+    {"item": "object_lock.py object-level tools (PRD 6.8): object_retention_get/_set, object_legal_hold_get/_set", "verdict": "partial", "evidence": "src/wasabi_mcp/tools/object_lock.py:51-159 — implemented, but origin/main (8bb16c1, #9) already ships object_lock.py with all six PRD 6.8 tools; add/add conflict on merge"},
+    {"item": "transfer.py presign tools (PRD 6.5): presign_get, presign_put, presign_get_for_prefix", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/transfer.py:50-158"},
+    {"item": "Tests: test_objects_read.py, test_objects_write.py, test_object_lock.py, test_transfer.py (moto)", "verdict": "partial", "evidence": "tests/tools/ — 149 pass on the branch; tests/tools/test_object_lock.py conflicts (add/add) with origin/main's version"},
+    {"item": "Docs: objects_read.md, objects_write.md, object_lock.md, transfer.md", "verdict": "partial", "evidence": "docs/tools/objects_read.md, objects_write.md, transfer.md added; docs/tools/object_lock.md conflicts (add/add) with origin/main"},
+    {"item": "AC: presign_get_for_prefix media/ + .mp4 returns one URL per match across >1 page, none for non-matches (S2)", "verdict": "covered", "evidence": "tests/tools/test_transfer.py:63; src/wasabi_mcp/tools/transfer.py:125-148"},
+    {"item": "AC: text get truncates above cap and says so; text put rejects bodies above the cap", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_read.py:297-334; src/wasabi_mcp/tools/objects_write.py:98-102; tests/tools/test_objects_read.py:132,155"},
+    {"item": "AC: object delete tools refuse without confirm=true and in read-only mode", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_write.py:186,221,276; tests/tools/test_objects_write.py:164,173"},
+    {"item": "AC: presigned URLs use s3_endpoint_for(region) for the bucket's region", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/transfer.py:65,91,119; tests/tools/test_transfer.py:163,180"},
+    {"item": "AC: every object tool in PRD 6 for this area has a passing moto unit test", "verdict": "partial", "evidence": "tests/tools/test_objects_read.py, test_objects_write.py, test_transfer.py pass; object-lock tests pass on branch but must be reconciled with main's test_object_lock.py"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Branch does not merge into origin/main: add/add conflicts in object_lock.py, test_object_lock.py, docs/tools/object_lock.md and content conflicts in .dmx/productContext.md, .dmx/systemPatterns.md", "addressed": false, "evidence": "src/wasabi_mcp/tools/object_lock.py:1 (git merge-tree HEAD origin/main)"},
+    {"description": "Empty object ranged read (InvalidRange) treated as empty text", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_read.py:308-312"},
+    {"description": "Truncation never splits a multi-byte UTF-8 character", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_read.py:120-130"},
+    {"description": "object_delete_many refuses an empty prefix and caps keys/max_keys", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_write.py:222-231"},
+    {"description": "presign_get_for_prefix has no scan cap: a rare suffix under a large prefix lists without bound in one call", "addressed": false, "evidence": "src/wasabi_mcp/tools/transfer.py:125"},
+    {"description": "object_search treats naive modified_after/before as local time, while object_lock (main) treats naive times as UTC", "addressed": false, "evidence": "src/wasabi_mcp/tools/objects_read.py:140"},
+    {"description": "Guards (require_writable / require_confirmed / expires and max_items validation) run before any network call", "addressed": true, "evidence": "src/wasabi_mcp/tools/transfer.py:86-87,117-118; src/wasabi_mcp/tools/objects_write.py:96-102"}
+  ]
+}

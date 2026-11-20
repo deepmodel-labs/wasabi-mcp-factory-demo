@@ -1,5 +1,4 @@
 ## Open Learnings
-- `object_search` uses the last scanned key as `next_token` (ListObjectsV2 `StartAfter`), so it can stop mid-page and resume exactly; it also honours PRD `max_scan` (default 10,000).
 
 ## Open Decisions
 
@@ -11,3 +10,6 @@
 - Added object write and delete tools (objects_write.py), moto tests and docs — Phase 2 complete.
 - dev loop iterating (round 2) — repeat_until 'all_phases_complete' not yet met (job `gh-7`).
 - Added object-level Object Lock tools (object_lock.py) and presign tools (transfer.py) with moto tests and docs — Phase 3 complete, all phases done.
+- dev loop completed (outcome: success) — chained to validate (job `gh-7`).
+- validate loop completed (outcome: success) — chained to release (job `gh-7`).
+- PR opened for: Add S3 object and presigned-URL tool groups. Before merge, it needs `origin/main` merged in (object_lock.py add/add conflict with #9).

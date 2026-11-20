@@ -1,0 +1,24 @@
+{
+  "loop_name": "release",
+  "job_id": "gh-7",
+  "task_id": "fc78f551-c11d-4707-84ff-86c8595f1634",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "prune-jobs",
+    "create-pr"
+  ],
+  "skills_completed": [
+    "prune-jobs"
+  ],
+  "skill_outputs": {
+    "prune-jobs": "No finished jobs to remove. (gh-1 kept: finished 0 days ago; gh-7 is the current ticket.)"
+  },
+  "validator_results": [],
+  "outcome": null,
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T01:54:24.059759+00:00",
+  "updated_at": "2026-11-20T01:55:32.422271+00:00",
+  "validation_started_at": null,
+  "finish_message": null
+}
