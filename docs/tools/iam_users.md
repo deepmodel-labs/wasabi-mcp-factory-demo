@@ -8,6 +8,6 @@
 | `iam_user_update` | W | Rename an IAM user and/or change their path. Returns the user's new name. |
 | `iam_user_delete` | D | Delete an IAM user; needs `confirm=true`. With `cascade=true` it first removes the user's keys, login profile, group memberships, policies and MFA devices, and lists each step. |
 | `iam_login_profile_get` | R | Show whether an IAM user has a console password (login profile), with its created date and reset flag. Returns `{"configured": false}` when there is none. |
-| `iam_login_profile_create` | D | Give an IAM user a console password; needs `confirm=true`. A strong password is generated when none is given, and returned once as `password`. |
+| `iam_login_profile_create` | D | Give an IAM user a console password; needs `confirm=true`. A strong password is generated when none is given, and returned once as `password`. With `WASABI_MCP_SECRETS_DIR` set, the password goes to a new 0600 file instead and `secrets_file` gives its path. |
 | `iam_login_profile_update` | D | Change an IAM user's console password and/or whether they must reset it at next sign-in; needs `confirm=true`. Never returns the password. |
 | `iam_login_profile_delete` | D | Remove an IAM user's console password so they can't sign in to the console; needs `confirm=true`. Access keys keep working. |

@@ -11,7 +11,7 @@ from mcp.server.mcpserver import MCPServer
 from wasabi_mcp import rest
 from wasabi_mcp.errors import explain
 from wasabi_mcp.safety import require_confirmed, require_writable
-from wasabi_mcp.tools import DESTRUCTIVE, READ, WRITE, ToolContext, clean
+from wasabi_mcp.tools import DESTRUCTIVE, READ, WRITE, ToolContext, _secrets, clean
 from wasabi_mcp.tools._iam import (
     DEFAULT_MAX_ITEMS,
     NO_SUCH_ENTITY,
@@ -221,8 +221,11 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
     ) -> dict[str, Any]:
         """Create a virtual (TOTP) MFA device, the only kind Wasabi supports; needs
         confirm=true. Returns the Base32 seed and a QR code PNG (base64) once, for the user
-        to enrol in an authenticator app."""
+        to enrol in an authenticator app. With WASABI_MCP_SECRETS_DIR set, both go to one
+        new 0600 JSON file instead and only `serial_number` and `secrets_file` are
+        returned."""
         require_confirmed(settings, "CreateVirtualMFADevice", confirm)
+        directory = _secrets.prepare(settings)
         response = invoke(
             "CreateVirtualMFADevice",
             clients.iam().create_virtual_mfa_device,
@@ -230,6 +233,23 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
             Path=path,
         )
         device = response["VirtualMFADevice"]
+        if directory is not None:
+            path = _secrets.write(
+                directory,
+                "iam_mfa_virtual_device_create",
+                {
+                    "serial_number": device["SerialNumber"],
+                    "base32_string_seed": _text(device["Base32StringSeed"]),
+                    "qr_code_png": _base64(device["QRCodePNG"]),
+                },
+                f"Virtual MFA device {device['SerialNumber']}",
+            )
+            return {
+                "ok": True,
+                "serial_number": device["SerialNumber"],
+                "secrets_file": path,
+                "note": _secrets.SAVED_NOTE,
+            }
         return {
             "ok": True,
             "serial_number": device["SerialNumber"],

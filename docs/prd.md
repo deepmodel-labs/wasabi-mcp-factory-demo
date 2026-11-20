@@ -527,6 +527,7 @@ Environment variables only, read once by `Settings.from_env()` (section 4.2).
 | `WASABI_MCP_READ_ONLY` | `true` | W and D tools refuse while true. |
 | `WASABI_WACM_USERNAME`, `WASABI_WACM_API_KEY` | — | WACM Connect (account or user API key). S3 keys don't work for WACM. |
 | `WASABI_S3_ENDPOINT`, `WASABI_IAM_ENDPOINT`, `WASABI_STS_ENDPOINT`, `WASABI_STATS_ENDPOINT`, `WASABI_WACM_ENDPOINT` | Wasabi's public endpoints | Overrides. |
+| `WASABI_MCP_SECRETS_DIR` | — | Optional. When set, the six tools that create credentials write each new secret to a new `0600` file there (directory created `0700`; refused if group- or world-accessible or not writable, before the Wasabi call) and return the file path and non-secret identifiers instead of the secret. |
 
 ## 8. Acceptance criteria
 

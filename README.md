@@ -45,7 +45,7 @@ To use it from an MCP client such as Claude Desktop or Claude Code, add it as a 
 
 `uv run wasabi-mcp --transport streamable-http` serves MCP over HTTP instead.
 
-To check the setup, call the `server_info` tool. It shows the version, region, read-only mode, endpoints and whether keys and WACM Connect are configured, without returning any credentials.
+To check the setup, call the `server_info` tool. It shows the version, region, read-only mode, endpoints, whether keys and WACM Connect are configured and whether a secrets directory is in use, without returning any credentials.
 
 ## Configuration
 
@@ -56,12 +56,28 @@ To check the setup, call the `server_info` tool. It shows the version, region, r
 | `WASABI_MCP_READ_ONLY` | `true` | Write tools refuse to run until you set this to `false`. |
 | `WASABI_WACM_USERNAME`, `WASABI_WACM_API_KEY` | (none) | WACM Connect credentials. Needed only for the account governance tools. |
 | `WASABI_S3_ENDPOINT`, `WASABI_IAM_ENDPOINT`, `WASABI_STS_ENDPOINT`, `WASABI_STATS_ENDPOINT`, `WASABI_WACM_ENDPOINT` | Wasabi's public endpoints | Overrides, for private endpoints and tests. |
+| `WASABI_MCP_SECRETS_DIR` | (none) | A directory for new secrets. When set, tools that create credentials write each secret to a file there instead of returning it. See [New secrets](#new-secrets). |
+
+### New secrets
+
+Six tools create a secret that Wasabi shows only once: `iam_access_key_create`, `iam_login_profile_create`, `iam_mfa_virtual_device_create`, `sts_assume_role`, `sts_session_token` and `wacm_sub_account_create`.
+
+- **`WASABI_MCP_SECRETS_DIR` unset (the default):** the tool returns the secret in its result, so it enters the model's context. Copy it straight away.
+- **`WASABI_MCP_SECRETS_DIR` set:** the tool writes the secret to a new JSON file in that directory and returns only `secrets_file` (the file's absolute path) and the non-secret identifiers, such as the access key ID, user name, expiry or sub-account. No secret value appears in the result. For `iam_mfa_virtual_device_create`, the Base32 seed and the QR code PNG (base64) go into the same file, and the tool returns only the device serial number and the path.
+
+Each file is created with mode `0600` and a random name, and never overwrites an existing file; every call makes a new one. `~` and relative paths are resolved when the server starts. The directory is checked before Wasabi is called, so a secret is never created that can't be saved:
+
+- If it doesn't exist, it is created with mode `0700`.
+- If it is group- or world-accessible (for example `0755`), the tool refuses and tells you to run `chmod 700 <dir>`.
+- If it isn't a directory, or the server can't write to it, the tool refuses.
+
+If the file still can't be written after Wasabi created the credential, the tool returns an error naming what was created (for example the access key ID), so you can delete or rotate it. The server never reads these files back or deletes them: remove each one once its secret is stored safely.
 
 ## Safety
 
 - **The server starts read-only.** Every tool is marked read or write in its MCP annotations, and write tools refuse while `WASABI_MCP_READ_ONLY` is on.
 - **Destructive tools also need `confirm=true` in the call.** These are deletes and changes to policies or access.
-- **Credentials come only from the environment.** The server never logs or returns your configured credentials. Tools that create new keys (IAM access keys, sub-accounts) return the new secret once, and only when called with `confirm=true`.
+- **Credentials come only from the environment.** The server never logs or returns your configured credentials. Tools that create new credentials (IAM access keys, console passwords, MFA devices, STS sessions, sub-accounts) need `confirm=true` and return the new secret once, or write it to a private file instead when `WASABI_MCP_SECRETS_DIR` is set.
 
 ## Tools
 

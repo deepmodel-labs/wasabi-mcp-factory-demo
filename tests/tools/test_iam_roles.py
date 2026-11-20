@@ -5,6 +5,15 @@ import pytest
 from tests.conftest import FAKE_ACCESS_KEY
 from tests.helpers import ToolError, call
 from tests.tools.iam_support import READ_ONLY_POLICY, assert_no_secrets, client_error, stubbed
+from tests.tools.secrets_support import (
+    UNUSABLE_DIRS,
+    assert_absent,
+    call_with_text,
+    read_secrets_file,
+    secrets_server,
+    unusable_dir,
+    with_secrets_dir,
+)
 from wasabi_mcp.clients import Clients
 
 TRUST = {
@@ -405,3 +414,68 @@ async def test_session_token_needs_confirm(stub):
 async def test_session_token_refused_read_only(read_only_server):
     with pytest.raises(ToolError, match="GetSessionToken refused: the server is read-only"):
         await call(read_only_server, "sts_session_token", confirm=True)
+
+
+# sts_assume_role and sts_session_token with WASABI_MCP_SECRETS_DIR
+
+TEMPORARY = {"access_key_id", "secret_access_key", "session_token", "expiration"}
+
+
+async def test_assume_role_writes_credentials_to_a_file(settings, tmp_path):
+    directory = tmp_path / "secrets"
+    server = secrets_server(settings, directory)
+    await _role(server)
+    result, text = await call_with_text(
+        server, "sts_assume_role", role_arn=ROLE_ARN, session_name="contractor", confirm=True
+    )
+    assert set(result) == {"ok", "credentials", "assumed_role_user", "note"}
+    assert set(result["credentials"]) == {"access_key_id", "expiration", "secrets_file"}
+    assert result["assumed_role_user"]["Arn"].endswith("assumed-role/reader/contractor")
+    saved = read_secrets_file(result["credentials"]["secrets_file"], directory)
+    assert set(saved) == TEMPORARY
+    assert saved["access_key_id"] == result["credentials"]["access_key_id"]
+    assert saved["expiration"] == result["credentials"]["expiration"]
+    assert_absent(text, saved["secret_access_key"], saved["session_token"])
+
+
+async def test_session_token_writes_credentials_to_a_file(settings, tmp_path):
+    directory = tmp_path / "secrets"
+    server = secrets_server(settings, directory)
+    result, text = await call_with_text(
+        server, "sts_session_token", duration_seconds=900, confirm=True
+    )
+    assert set(result) == {"ok", "credentials", "note"}
+    assert set(result["credentials"]) == {"access_key_id", "expiration", "secrets_file"}
+    saved = read_secrets_file(result["credentials"]["secrets_file"], directory)
+    assert set(saved) == TEMPORARY
+    assert_absent(text, saved["secret_access_key"], saved["session_token"])
+
+
+async def test_sts_without_secrets_dir_returns_credentials(server):
+    await _role(server)
+    assumed = await call(
+        server, "sts_assume_role", role_arn=ROLE_ARN, session_name="s1", confirm=True
+    )
+    session = await call(server, "sts_session_token", confirm=True)
+    assert set(assumed) == {"ok", "credentials", "assumed_role_user", "note"}
+    assert set(session) == {"ok", "credentials", "note"}
+    assert set(assumed["credentials"]) == TEMPORARY
+    assert set(session["credentials"]) == TEMPORARY
+
+
+@pytest.mark.parametrize(("kind", "match"), UNUSABLE_DIRS)
+@pytest.mark.parametrize(
+    ("tool", "arguments"),
+    [
+        ("sts_assume_role", {"role_arn": ROLE_ARN, "session_name": "s1"}),
+        ("sts_session_token", {}),
+    ],
+)
+async def test_sts_refuses_an_unusable_dir_before_calling_wasabi(
+    rest_settings, monkeypatch, tmp_path, kind, match, tool, arguments
+):
+    # The Stubber has no queued responses: reaching STS would fail differently.
+    settings = with_secrets_dir(rest_settings, unusable_dir(tmp_path, kind))
+    for stub in stubbed(settings, monkeypatch):
+        with pytest.raises(ToolError, match=match):
+            await call(stub.server, tool, **arguments, confirm=True)

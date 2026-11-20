@@ -31,6 +31,7 @@ async def test_server_info_reports_configuration(rest_server):
         },
         "keys_configured": True,
         "wacm_configured": True,
+        "secrets_dir_enabled": False,
         "groups": discover_groups(),
     }
 

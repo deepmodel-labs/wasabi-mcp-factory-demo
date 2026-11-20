@@ -10,6 +10,7 @@ It's also a reference build for the DeepModel software factory. The repo, its is
 - Tools are grouped by area. Each group is one module that registers its tools on start-up and is found automatically.
 - Tools call Wasabi through boto3 (S3, IAM, STS) or httpx helpers (Wasabi extensions, Stats, WACM Connect), and return plain JSON.
 - Writes refuse while the server is read-only (`WASABI_MCP_READ_ONLY`, default `true`). Destructive tools also require `confirm=true`.
+- New credentials (IAM access keys, console passwords, MFA seeds/QR codes, STS sessions, sub-account keys) are returned once by default. With `WASABI_MCP_SECRETS_DIR` set, they are written to private 0600 files instead, and only the file path and non-secret IDs are returned.
 - `object_delete_many` refuses an empty prefix, so a batch delete can't empty a whole bucket by accident.
 - Bucket and bucket-configuration tools are built (GH-3): buckets; policy and ACLs; CORS and lifecycle; Object Lock, retention and legal hold; logging and inventory; replication and backfill. That's 40 tools.
 - Object and presigned-URL tools are built (GH-7): list, versions, head, search, text get (truncated at `max_bytes`, at most 1 MiB) and text put (at most 1 MiB), copy, delete, tags and metadata, plus `presign_get`, `presign_put` and `presign_get_for_prefix`. Presigned URLs use the endpoint for the bucket's region.

@@ -8,7 +8,7 @@ from typing import Any, Literal
 from mcp.server.mcpserver import MCPServer
 
 from wasabi_mcp.safety import ToolRefused, require_confirmed
-from wasabi_mcp.tools import DESTRUCTIVE, READ, ToolContext
+from wasabi_mcp.tools import DESTRUCTIVE, READ, ToolContext, _secrets
 from wasabi_mcp.tools._wacm import call, compact, page_result, result
 
 QuotaType = Literal["Soft", "Hard"]
@@ -93,7 +93,9 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
         """Create a WACM Connect sub-account (a new Wasabi account) with an optional Soft or
         Hard storage quota; Hard needs purchased_storage_tb. Give a password or
         send_welcome_email=true. Returns the account and its new access_key_id and
-        secret_access_key, shown only this once. Needs confirm=true."""
+        secret_access_key, shown only this once; with WASABI_MCP_SECRETS_DIR set, the keys
+        go to a new 0600 file instead and `secrets_file` gives its path. Needs
+        confirm=true."""
         action = "CreateSubAccount"
         require_confirmed(settings, action, confirm)
         low, high = NAME_LENGTH
@@ -102,6 +104,7 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
         if password is None and send_welcome_email is not True:
             raise ToolRefused(f"{action} refused: give a password or send_welcome_email=true")
         _check_quota(storage_quota_type, purchased_storage_tb, action)
+        directory = _secrets.prepare(settings)
         body = compact(
             name=name,
             wasabiAccountEmail=wasabi_account_email,
@@ -116,10 +119,26 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
             storageQuotaType=storage_quota_type,
         )
         response = call(settings, "POST", "/v1/sub-accounts", body=body)
+        access_key_id = _find(response, _ACCESS_KEY_FIELDS)
+        secret_access_key = _find(response, _SECRET_KEY_FIELDS)
+        if directory is not None:
+            path = None
+            if secret_access_key is not None:
+                path = _secrets.write(
+                    directory,
+                    "wacm_sub_account_create",
+                    {"access_key_id": access_key_id, "secret_access_key": secret_access_key},
+                    f"Sub-account {name} (access key {access_key_id})",
+                )
+            return {
+                "sub_account": result(response),
+                "access_key_id": access_key_id,
+                "secrets_file": path,
+            }
         return {
             "sub_account": result(response),
-            "access_key_id": _find(response, _ACCESS_KEY_FIELDS),
-            "secret_access_key": _find(response, _SECRET_KEY_FIELDS),
+            "access_key_id": access_key_id,
+            "secret_access_key": secret_access_key,
         }
 
     @server.tool(name="wacm_sub_account_update", annotations=DESTRUCTIVE)

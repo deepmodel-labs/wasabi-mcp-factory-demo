@@ -11,7 +11,7 @@ from mcp.server.mcpserver import MCPServer
 
 from wasabi_mcp.errors import explain
 from wasabi_mcp.safety import require_confirmed, require_writable
-from wasabi_mcp.tools import DESTRUCTIVE, READ, WRITE, ToolContext, clean
+from wasabi_mcp.tools import DESTRUCTIVE, READ, WRITE, ToolContext, _secrets, clean
 from wasabi_mcp.tools._iam import (
     DEFAULT_MAX_ITEMS,
     DELETE_CONFLICT,
@@ -235,8 +235,11 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
         confirm: bool = False,
     ) -> dict[str, Any]:
         """Give an IAM user a console password; needs confirm=true. A strong password is
-        generated when none is given, and returned once as `password`."""
+        generated when none is given, and returned once as `password`. With
+        WASABI_MCP_SECRETS_DIR set, the password goes to a new 0600 file instead and
+        `secrets_file` gives its path."""
         require_confirmed(settings, "CreateLoginProfile", confirm)
+        directory = _secrets.prepare(settings)
         chosen = password or generate_password()
         response = invoke(
             "CreateLoginProfile",
@@ -246,6 +249,19 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
             PasswordResetRequired=password_reset_required,
         )
         profile = response["LoginProfile"]
+        if directory is not None:
+            details = {
+                "user_name": profile["UserName"],
+                "password_reset_required": password_reset_required,
+                "create_date": clean(profile.get("CreateDate")),
+            }
+            path = _secrets.write(
+                directory,
+                "iam_login_profile_create",
+                {**details, "password": chosen},
+                f"Login profile for user {profile['UserName']}",
+            )
+            return {"ok": True, **details, "secrets_file": path, "note": _secrets.SAVED_NOTE}
         return {
             "ok": True,
             "user_name": profile["UserName"],

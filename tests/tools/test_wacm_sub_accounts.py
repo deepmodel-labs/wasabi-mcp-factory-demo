@@ -2,6 +2,14 @@ import httpx
 import pytest
 import respx
 
+from tests.tools.secrets_support import (
+    UNUSABLE_DIRS,
+    assert_absent,
+    call_with_text,
+    read_secrets_file,
+    secrets_server,
+    unusable_dir,
+)
 from tests.tools.wacm_support import (
     WACM,
     assert_basic_auth,
@@ -281,4 +289,49 @@ async def test_destructive_tools_refuse_when_read_only(rest_settings, tool, argu
 async def test_destructive_tools_need_confirm(rest_server, tool, arguments):
     route = respx.route(host="wacm.wasabi.test")
     await assert_refused(rest_server, tool, "confirm=true", **arguments)
+    assert route.call_count == 0
+
+
+# wacm_sub_account_create with WASABI_MCP_SECRETS_DIR
+
+
+@respx.mock
+async def test_create_writes_the_new_keys_to_a_file(rest_settings, tmp_path):
+    directory = tmp_path / "secrets"
+    respx.post(f"{WACM}/v1/sub-accounts").mock(return_value=httpx.Response(201, json=CREATED))
+    server = secrets_server(rest_settings, directory)
+    created, text = await call_with_text(server, "wacm_sub_account_create", **S6_ARGS, confirm=True)
+    assert set(created) == {"sub_account", "access_key_id", "secrets_file"}
+    assert created["access_key_id"] == NEW_ACCESS_KEY
+    assert created["sub_account"]["data"]["id"] == 42
+    saved = read_secrets_file(created["secrets_file"], directory)
+    assert saved == {"access_key_id": NEW_ACCESS_KEY, "secret_access_key": NEW_SECRET_KEY}
+    assert_absent(text, NEW_SECRET_KEY)
+    assert_no_secrets(created)
+
+
+@respx.mock
+async def test_create_without_returned_keys_writes_no_file(rest_settings, tmp_path):
+    directory = tmp_path / "secrets"
+    respx.post(f"{WACM}/v1/sub-accounts").mock(
+        return_value=httpx.Response(201, json={"data": {"id": 43}})
+    )
+    server = secrets_server(rest_settings, directory)
+    created = await invoke(server, "wacm_sub_account_create", **S6_ARGS, confirm=True)
+    assert created == {
+        "sub_account": {"data": {"id": 43}},
+        "access_key_id": None,
+        "secrets_file": None,
+    }
+    assert list(directory.iterdir()) == []
+
+
+@pytest.mark.parametrize(("kind", "match"), UNUSABLE_DIRS)
+@respx.mock
+async def test_create_refuses_an_unusable_dir_before_calling_wacm(
+    rest_settings, tmp_path, kind, match
+):
+    route = respx.route(host="wacm.wasabi.test")
+    server = secrets_server(rest_settings, unusable_dir(tmp_path, kind))
+    await assert_refused(server, "wacm_sub_account_create", match, **S6_ARGS, confirm=True)
     assert route.call_count == 0

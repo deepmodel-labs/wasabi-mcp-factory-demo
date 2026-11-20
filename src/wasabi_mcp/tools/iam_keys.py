@@ -7,7 +7,7 @@ from typing import Any
 from mcp.server.mcpserver import MCPServer
 
 from wasabi_mcp.safety import ToolRefused, require_confirmed
-from wasabi_mcp.tools import DESTRUCTIVE, READ, ToolContext, clean
+from wasabi_mcp.tools import DESTRUCTIVE, READ, ToolContext, _secrets, clean
 from wasabi_mcp.tools._iam import DEFAULT_MAX_ITEMS, SECRET_NOTE, invoke, page_params, page_result
 
 # Wasabi's ListAccessKeys accepts UserName=* to list every user's keys.
@@ -55,10 +55,26 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
     ) -> dict[str, Any]:
         """Create an access key for a user (default: the caller); needs confirm=true.
         Returns `access_key_id` and `secret_access_key` once: the secret can't be retrieved
-        again. Users can have at most two keys."""
+        again. With WASABI_MCP_SECRETS_DIR set, the secret goes to a new 0600 file instead
+        and `secrets_file` gives its path. Users can have at most two keys."""
         require_confirmed(settings, "CreateAccessKey", confirm)
+        directory = _secrets.prepare(settings)
         response = invoke("CreateAccessKey", clients.iam().create_access_key, UserName=user_name)
         key = response["AccessKey"]
+        if directory is not None:
+            details = {
+                "user_name": key.get("UserName"),
+                "access_key_id": key["AccessKeyId"],
+                "status": key.get("Status"),
+                "create_date": clean(key.get("CreateDate")),
+            }
+            path = _secrets.write(
+                directory,
+                "iam_access_key_create",
+                {**details, "secret_access_key": key["SecretAccessKey"]},
+                f"Access key {key['AccessKeyId']}",
+            )
+            return {"ok": True, **details, "secrets_file": path, "note": _secrets.SAVED_NOTE}
         return {
             "ok": True,
             "user_name": key.get("UserName"),
