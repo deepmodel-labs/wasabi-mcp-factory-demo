@@ -1,0 +1,22 @@
+{
+  "commit": "cfa0eb28eb6a42514523dc0e1f0de5859348fd62",
+  "scope_items": [
+    {"item": "With the append request mocked to return Wasabi's NoSuchKey response, object_append PUTs the text to that key and returns created: true, and reading the key back returns that text.", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_ext.py:251-264; tests/tools/test_objects_ext.py test_object_append_creates_a_missing_key, test_object_append_round_trip_on_moto"},
+    {"item": "object_append to an existing key still appends: original text followed by new text, and the result has created: false.", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_ext.py:250,278; tests/tools/test_objects_ext.py test_object_append_puts_the_text (created False, one request), test_object_append_round_trip_on_moto (one\\ntwo\\n)"},
+    {"item": "Append errors other than NoSuchKey (e.g. AccessDenied) don't trigger the PUT fallback and come back as clear tool errors.", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_ext.py:252-253; tests/tools/test_objects_ext.py test_object_append_access_denied_does_not_create"},
+    {"item": "If the fallback PUT fails, report it as PutObject failed: ...", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_ext.py:262; tests/tools/test_objects_ext.py test_object_append_reports_a_failed_create"},
+    {"item": "The tool description says a missing key is created, and has one line about the possible race with a concurrent writer.", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_ext.py:225-226; tests/tools/test_objects_ext.py test_object_append_description_states_create_on_missing_and_the_race"},
+    {"item": "A live-marked test in tests/live/ appends to a new key and checks the object is created; skipped unless WASABI_LIVE=1.", "verdict": "covered", "evidence": "tests/live/test_buckets_objects.py:77-83; tests/live/conftest.py:46-47"},
+    {"item": "rest.signed_s3 exposes the error code via an optional ToolRefused.code without changing the message.", "verdict": "covered", "evidence": "src/wasabi_mcp/safety.py:18-20; src/wasabi_mcp/rest.py:132"},
+    {"item": "docs/tools/objects_ext.md updated and docs/tools.md regenerated.", "verdict": "covered", "evidence": "docs/tools/objects_ext.md:13,23-24; docs/tools.md:66"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "bucket_region is not wrapped by the NoSuchKey try/except, so its own ToolRefused passes through unchanged", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_ext.py:236"},
+    {"description": "Read-only mode and the 1 MiB limit are still enforced before any request, including the fallback PUT", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_ext.py:229-235"},
+    {"description": "Fallback PUT failure surfaces as PutObject failed, not masked as an append error", "addressed": true, "evidence": "tests/tools/test_objects_ext.py test_object_append_reports_a_failed_create"},
+    {"description": "Concurrent writer racing with the fallback PUT (no conditional create on Wasabi); accepted by the architect and documented", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_ext.py:226; docs/tools/objects_ext.md:13"},
+    {"description": "Result shape is identical for both paths (created always present)", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_ext.py:278"}
+  ]
+}

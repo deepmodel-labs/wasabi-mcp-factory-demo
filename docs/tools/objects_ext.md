@@ -10,7 +10,7 @@ GetBucketLocation and cached.
 | `object_rename` | D | Rename an object (all its versions) to the `destination` key in the same bucket: `MOVE /<bucket>/<key>` with `Destination: <destination>` and `Overwrite: true\|false`. `overwrite` defaults to false, so an existing destination isn't replaced. Needs `s3:PutObject` and `confirm=true`. |
 | `object_rename_prefix` | D | Rename every key (all versions) under `prefix` so it starts with `destination` instead: `MOVE /<bucket>/<prefix>` with `X-Wasabi-Prefix: true`, `Overwrite` and `X-Wasabi-Quiet`. Returns Wasabi's per-key results as `moved` and `errors`, plus `source_prefix`, `destination_prefix` and `move_count`. With `overwrite=false`, keys whose destination exists are reported under `errors`; nothing is refused locally. Needs `confirm=true`. |
 | `object_compose` | W | Create `key` by linking 1 to 32 `sources` in the same bucket, in order: `PUT /<bucket>/<key>?compose` with a `<ComposeRequest>` body. No data is copied. Customer-provided (SSE-C) keys aren't supported, and the returned ETag is a hash of the part MD5s, not the MD5 of the whole object. |
-| `object_append` | W | Append `text` (at most 1 MiB as UTF-8) to an object: `PUT /<bucket>/<key>?append` with `Content-Type` (default `text/plain`). Returns the ETag, version ID and any `X-Wasabi-*` headers. An object can be appended to at most 1,023 times, and each append is billed as a small object. |
+| `object_append` | W | Append `text` (at most 1 MiB as UTF-8) to an object: `PUT /<bucket>/<key>?append` with `Content-Type` (default `text/plain`). If Wasabi answers `NoSuchKey`, the object is created with a plain `PUT` of the same text and `created` is `true` (otherwise `false`); Wasabi has no conditional create, so a concurrent writer could race with that create. Returns the ETag, version ID, `created` and any `X-Wasabi-*` headers. An object can be appended to at most 1,023 times, and each append is billed as a small object. |
 
 ## Safety
 
@@ -20,4 +20,5 @@ GetBucketLocation and cached.
   source keys, an empty prefix and appends over 1 MiB are refused before signing.
 - A non-2xx response comes back as `ToolRefused("<Action> failed: <Code>: <Message>")` with
   Wasabi's own error code and message. The actions are `RenameObject`, `RenameObjectPrefix`,
-  `ComposeObject` and `AppendObject`.
+  `ComposeObject` and `AppendObject`. Only `NoSuchKey` on an append triggers the create; if
+  that `PUT` fails, the error is `PutObject failed: <Code>: <Message>`.

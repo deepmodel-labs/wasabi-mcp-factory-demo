@@ -74,6 +74,15 @@ async def test_object_get_text_after_append(live_server, bucket):
     assert read["text"] == "first line\nsecond line\n"
 
 
+async def test_object_append_creates_a_missing_key(live_server, bucket):
+    # Wasabi answers ?append on a missing key with NoSuchKey; the tool creates the object.
+    key = "append/new.txt"
+    result = await call(live_server, "object_append", bucket=bucket, key=key, text="first line\n")
+    assert result["created"] is True
+    read = await call(live_server, "object_get_text", bucket=bucket, key=key)
+    assert read["text"] == "first line\n"
+
+
 async def test_presigned_get_downloads_over_http(live_server, bucket):
     await call(live_server, "object_put_text", bucket=bucket, key="share/file.txt", text="shared")
     result = await call(

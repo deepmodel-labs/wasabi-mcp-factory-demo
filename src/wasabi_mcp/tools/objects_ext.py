@@ -222,6 +222,8 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
         region: str | None = None,
     ) -> dict[str, Any]:
         """Append text (at most 1 MiB as UTF-8) to an object with Wasabi's append extension.
+        If the key doesn't exist, the object is created with the text and `created` is true.
+        Wasabi has no conditional create, so a concurrent writer could race with that create.
         An object can be appended to at most 1,023 times, and each append is billed as a small
         object, so append in large chunks."""
         require_writable(settings, "AppendObject")
@@ -232,17 +234,34 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
                 f"{MAX_APPEND_BYTES} bytes (1 MiB)"
             )
         name = bucket_region(bucket, region)
-        response = rest.signed_s3(
-            settings,
-            "PUT",
-            bucket,
-            key,
-            query={"append": None},
-            headers={"Content-Type": content_type},
-            body=body,
-            region=name,
-            action="AppendObject",
-        )
+        headers = {"Content-Type": content_type}
+        try:
+            response = rest.signed_s3(
+                settings,
+                "PUT",
+                bucket,
+                key,
+                query={"append": None},
+                headers=headers,
+                body=body,
+                region=name,
+                action="AppendObject",
+            )
+            created = False
+        except ToolRefused as error:
+            if error.code != "NoSuchKey":
+                raise
+            response = rest.signed_s3(
+                settings,
+                "PUT",
+                bucket,
+                key,
+                headers=headers,
+                body=body,
+                region=name,
+                action="PutObject",
+            )
+            created = True
         extra = {
             header.lower().removeprefix("x-wasabi-").replace("-", "_"): value
             for header, value in response.headers.items()
@@ -256,5 +275,6 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
             "etag": _etag(response),
             "version_id": response.headers.get("x-amz-version-id"),
             "region": name,
+            "created": created,
             **extra,
         }
