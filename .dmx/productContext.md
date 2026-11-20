@@ -11,6 +11,7 @@ It's also a reference build for the DeepModel software factory. The repo, its is
 - Tools call Wasabi through boto3 (S3, IAM, STS) or httpx helpers (Wasabi extensions, Stats, WACM Connect), and return plain JSON.
 - Writes refuse while the server is read-only (`WASABI_MCP_READ_ONLY`, default `true`). Destructive tools also require `confirm=true`.
 - `object_delete_many` refuses an empty prefix, so a batch delete can't empty a whole bucket by accident.
+- Bucket and bucket-configuration tools are built (GH-3): buckets; policy and ACLs; CORS and lifecycle; Object Lock, retention and legal hold; logging and inventory; replication and backfill. That's 40 tools.
 
 ## Who uses it
 - Developers and operators who want an agent to work with their Wasabi account.

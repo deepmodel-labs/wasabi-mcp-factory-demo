@@ -1,0 +1,32 @@
+{
+  "commit": "f58657d3d11c5a67028e24cc4ce1a963b03358ce",
+  "scope_items": [
+    {"item": "object_rename (D): MOVE /bucket/key with Destination and Overwrite true|false (overwrite=False default)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_ext.py:110; tests/tools/test_objects_ext.py:60"},
+    {"item": "object_rename_prefix (D): MOVE /bucket/prefix with X-Wasabi-Prefix: true, per-key results parsed from XML, no local refusal for overwrite=false", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_ext.py:145; tests/tools/test_objects_ext.py:191,229"},
+    {"item": "object_compose (W): PUT /bucket/key?compose with 1-32 source keys, no SSE-C, ETag-hash note", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_ext.py:185; tests/tools/test_objects_ext.py:312,352,362"},
+    {"item": "object_append (W): PUT /bucket/key?append, at most 1 MiB, 1,023-append note", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_ext.py:216; tests/tools/test_objects_ext.py:404,446"},
+    {"item": "bucket_compliance_get (R): GET /bucket?compliance as snake_case JSON", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/compliance.py:141; tests/tools/test_compliance.py:73"},
+    {"item": "bucket_compliance_set (D): PUT /bucket?compliance with validated retention_days and lock_time, surfaces ComplianceSettingsLocked", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/compliance.py:166; tests/tools/test_compliance.py:118,214,276"},
+    {"item": "object_compliance_get (R): GET /bucket/key?compliance including SHA256 (absent for multipart/composed)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/compliance.py:213; tests/tools/test_compliance.py:300,320"},
+    {"item": "object_compliance_set (D): release-only conditional hold, legal_hold bool, retention_time only extends (GET first, refuse shorter before PUT)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/compliance.py:230; tests/tools/test_compliance.py:340,371,392"},
+    {"item": "PRD 5: catalogue names/kinds with READ/WRITE/DESTRUCTIVE, guards before network, confirm on D tools, clean() output, ToolRefused '<Action> failed: <Code>: <Message>'", "verdict": "covered", "evidence": "tests/tools/test_objects_ext.py:46,127,137,153; tests/tools/test_compliance.py:60,245,260,466"},
+    {"item": "Docs: docs/tools/objects_ext.md and docs/tools/compliance.md", "verdict": "covered", "evidence": "docs/tools/objects_ext.md:1; docs/tools/compliance.md:1"},
+    {"item": "AC: respx tests confirm documented method (incl. MOVE) and exact bare subresource query on https://s3.<region>.wasabisys.com/<bucket>/<key>", "verdict": "covered", "evidence": "tests/tools/test_objects_ext.py:72,106,326,418; tests/tools/test_compliance.py:80,176,307; force_delete/inventory/backfill covered by T1 on main: tests/tools/test_buckets.py:203"},
+    {"item": "AC: force-delete, MOVE overwrite and compliance changes refuse without confirm=true and in read-only mode", "verdict": "covered", "evidence": "tests/tools/test_objects_ext.py:127,137,247,262; tests/tools/test_compliance.py:245,260,435,450; force-delete by T1 on main: tests/tools/test_buckets.py:236"},
+    {"item": "AC: non-2xx Wasabi XML error comes back as ToolRefused with Code and Message", "verdict": "covered", "evidence": "tests/tools/test_objects_ext.py:153,294,387,471; tests/tools/test_compliance.py:103,276,328,466"},
+    {"item": "AC: bucket_replication_backfill accepts source and destination and returns job id/status as JSON (S10) - owned by T1 per spec Out of Scope, merged on main", "verdict": "covered", "evidence": "origin/main tests/tools/test_bucket_replication.py:222,234"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Compose with 0 or 33 sources, or an empty source key, refused before signing", "addressed": true, "evidence": "tests/tools/test_objects_ext.py:352"},
+    {"description": "Append body over 1 MiB (measured as UTF-8 bytes) refused before signing", "addressed": true, "evidence": "tests/tools/test_objects_ext.py:446"},
+    {"description": "Empty prefix for object_rename_prefix refused (would otherwise move the whole bucket)", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_ext.py:160"},
+    {"description": "MOVE returning 200 with per-key errors in XML is reported as failure for single-object rename", "addressed": true, "evidence": "tests/tools/test_objects_ext.py:173"},
+    {"description": "Shorter retention_time refused after the GET and before the PUT", "addressed": true, "evidence": "tests/tools/test_compliance.py:392"},
+    {"description": "object_compliance_set with no changes given is refused", "addressed": true, "evidence": "src/wasabi_mcp/tools/compliance.py:244"},
+    {"description": "All-digit SHA256 digest kept as text rather than converted to int", "addressed": true, "evidence": "src/wasabi_mcp/tools/compliance.py:55"},
+    {"description": "Key with spaces percent-encoded in the path-style URL", "addressed": true, "evidence": "tests/tools/test_compliance.py:307"},
+    {"description": "No configured secret appears in any tool output", "addressed": true, "evidence": "tests/tools/test_objects_ext.py:506; tests/tools/test_compliance.py:520"}
+  ]
+}
