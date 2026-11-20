@@ -13,3 +13,4 @@
 - PR opened for: Add WACM Connect tool groups (accounts, channels, sub-accounts, billing). Merged main into the branch first (systemPatterns.md conflict, both sides kept).
 - validate loop completed (outcome: success) — chained to release (job `gh-6`).
 - release loop completed (outcome: success) (job `gh-6`).
+- Rework round 1: merged origin/main (not rebased, to avoid rewriting pushed history); resolved productContext/systemPatterns/techContext conflicts keeping both sides; 665 tests pass; pushed 2be0d27.
