@@ -3,8 +3,6 @@
 ## Open Decisions
 
 ## Session Notes
-- Rework round 1: merged origin/main, took main's object_lock files (superset), kept both memory-bank sides; 392 tests pass.
-- Committed dev loop state after rework round 1 (merge of origin/main).
 - dev loop completed (outcome: success) — chained to validate (job `gh-7`).
 - validate loop completed (outcome: success) — chained to release (job `gh-7`).
 - PR #13 updated after rework round 1 for: Add S3 object and presigned-URL tool groups. It merges cleanly into main (now including #14).
@@ -14,3 +12,4 @@
 - dev loop completed (outcome: success) — chained to validate (job `gh-7`).
 - validate loop completed (outcome: success) — chained to release (job `gh-7`).
 - PR #13 updated after rework round 2 for: Add S3 object and presigned-URL tool groups. It merges cleanly into main (now including #14 and #12); 743 tests pass.
+- release loop completed (outcome: success) (job `gh-7`).
