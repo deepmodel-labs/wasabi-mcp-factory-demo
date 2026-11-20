@@ -3,22 +3,47 @@
   "job_id": "gh-18",
   "task_id": "a8397a19-3b97-4682-8680-6f788367a271",
   "status": "complete",
-  "current_skill_index": 1,
+  "current_skill_index": 2,
   "skills": [
     "prune-jobs",
     "create-pr"
   ],
   "skills_completed": [
-    "prune-jobs"
+    "prune-jobs",
+    "create-pr"
   ],
   "skill_outputs": {
-    "prune-jobs": "No finished jobs to remove. prune_jobs (default 30 days) kept all jobs: gh-18 is the current ticket; gh-1, gh-3..gh-8, gh-15 finished 0 days ago. No jobs kept for open learnings or decisions. No commit made."
+    "prune-jobs": "No finished jobs to remove. prune_jobs (default 30 days) kept all jobs: gh-18 is the current ticket; gh-1, gh-3..gh-8, gh-15 finished 0 days ago. No jobs kept for open learnings or decisions. No commit made.",
+    "create-pr": "PR created: https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/pull/23 (base main, head bug-gh-18-fix-objectgettext-crash-on-appended @ faceae4).\nTitle follows dmx default \"Bug | #18 ...\" (no repo-specific convention found in CLAUDE.md or templates).\nMemory sync: added GH-18 user-facing note to productContext.md, session note to activeContext.md; snapshot_loop_for_pr ran; committed faceae4 \"chore: sync memory bank for gh-18\".\nBranch pushed (upstream config write failed on a .git/config lock; remote ref matches HEAD).\nIssue #18 labels: in-progress \u2192 in-review (bug kept).\nNo AI attribution in PR body. Unrelated untracked env files left uncommitted."
   },
-  "validator_results": [],
-  "outcome": null,
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "PR ready check passed",
+      "checks": [
+        {
+          "name": "pr_exists",
+          "pass": true,
+          "message": "PR open: https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/pull/23"
+        },
+        {
+          "name": "ticket_transitioned",
+          "pass": true,
+          "message": "Ticket 'gh-18' transition not verified \u2014 requires ticketing API access. Confirm manually or override this validator for automated checking."
+        },
+        {
+          "name": "memory_updated",
+          "pass": true,
+          "message": "Memory bank files updated in the latest commit"
+        }
+      ],
+      "tool": "check_pr_ready"
+    }
+  ],
+  "outcome": "success",
   "iteration_count": 0,
   "timestamp": "2026-11-20T06:53:11.994556+00:00",
-  "updated_at": "2026-11-20T06:54:07.401449+00:00",
-  "validation_started_at": null,
-  "finish_message": null
+  "updated_at": "2026-11-20T06:55:12.147281+00:00",
+  "validation_started_at": "2026-11-20T06:55:08.338069+00:00",
+  "finish_message": "**release loop \u2014 complete \u2713**\n\nJob: `gh-18` | Outcome: `success`"
 }
