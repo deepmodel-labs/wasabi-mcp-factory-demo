@@ -129,7 +129,7 @@ def signed_s3(
     response = _send(method.upper(), url, signed, body)
     if not response.is_success:
         code, message = _xml_error(response)
-        raise ToolRefused(f"{action} failed: {code}: {message}")
+        raise ToolRefused(f"{action} failed: {code}: {message}", code=code)
     return response
 
 

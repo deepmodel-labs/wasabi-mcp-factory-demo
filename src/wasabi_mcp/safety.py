@@ -12,7 +12,12 @@ class ToolRefused(ToolError):
 
     It subclasses the SDK's ``ToolError`` so the message reaches the client as an
     ``is_error`` result instead of being replaced by a generic crash message.
+    ``code`` is the service's error code (e.g. ``NoSuchKey``) when there is one.
     """
+
+    def __init__(self, message: str, *, code: str | None = None) -> None:
+        super().__init__(message)
+        self.code = code
 
 
 def require_writable(settings: Settings, action: str) -> None:
