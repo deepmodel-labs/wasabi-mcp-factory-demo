@@ -12,14 +12,14 @@
     "implement-next-phase"
   ],
   "skill_outputs": {
-    "implement-next-phase": "Phase 2 (REST Helpers, Tool Framework and Server) done: all 5 tasks are checked off in tasks.md. Not committed yet.\n- rest.py: parse_xml, signed_s3 (path-style SigV4 with UNSIGNED-PAYLOAD; any method incl. MOVE; bare subresources; the URL signed is the URL sent), iam_query, stats_get and wacm_request. All raise ToolRefused on missing credentials before any network call, and on non-2xx with the service's code and message.\n- tools/__init__.py: READ/WRITE/DESTRUCTIVE (open_world_hint=True), ToolContext, discover_groups (meta first) and clean().\n- tools/meta.py: server_info (READ). It returns version, region, read_only, endpoints, keys_configured, wacm_configured and groups, with no credentials.\n- server.py: build_server() (read-only-default instructions, auto-registers groups) and main() with --transport stdio|streamable-http.\n- Smoke checks pass: respx checks of all four helpers; signed_s3 PUTs to moto, read back by boto3; STS/IAM clients reach moto; `wasabi-mcp` over stdio lists server_info. ruff check and format pass.\n- Two test-harness learnings added to activeContext.md.",
-    "commit": "Committed 2cd80b7 on feature-gh-1-foundation-project-config-safety-guards: \"feat: add project setup and core config, safety, error and client modules\" (Closes #1).\n- Staged explicit paths only: pyproject.toml, uv.lock, src/wasabi_mcp/*, .dmx/techContext.md and .dmx/jobs/gh-1/*. The container artefacts (.bashrc, .idea, scripts, .github device mount, etc.) are left uncommitted, per the spec.\n- Memory bank: the mcp 2.3 ToolError/call_tool behaviour is promoted to techContext.md, Open Learnings is cleared, and a Phase 1 session note is added.\n- No attribution trailers. Not pushed."
+    "implement-next-phase": "Phase 3 (Test Harness, Foundation Tests, CI and Docs) done: all tasks across all phases are checked off. Not committed yet.\n- Tests: tests/__init__.py, tests/tools/__init__.py, helpers.py (call/ToolError), conftest.py (moto session server with urllib reset, settings/read_only_settings/server/read_only_server, FAKE, rest_settings/rest_server, live_settings), and test_config, test_safety, test_errors, test_clients, test_rest (respx) and test_server (incl. a stdio spawn of wasabi-mcp listing server_info).\n- CI: .github is blocked in the runner. Per the developer's answer, ci.yml is left to a maintainer; the exact YAML is in .dmx/jobs/gh-1/ci.yml for the PR description.\n- Also: the tools/__init__ docstring now lists the tool conventions (the README points there), pytest-asyncio loop scope is set, and the README has a server_info note.\n- uv run ruff check . && uv run ruff format --check . && uv run pytest -q passes (58 tests).",
+    "commit": "Committed ac44737: \"feat: add rest helpers, tool group framework, server_info and server entry\" (Closes #1).\n- Staged explicit paths only: src/wasabi_mcp/{rest,server}.py, src/wasabi_mcp/tools/{__init__,meta}.py, .dmx/techContext.md and .dmx/jobs/gh-1/*. Container artefacts are left untracked.\n- Memory bank: the stdio-client/moto-port and respx route-order learnings are promoted to techContext.md, and a Phase 2 session note is added.\n- No attribution trailers. Not pushed."
   },
   "validator_results": [],
   "outcome": "success",
-  "iteration_count": 1,
+  "iteration_count": 2,
   "timestamp": "2026-11-19T23:58:07.059039+00:00",
-  "updated_at": "2026-11-20T00:04:25.869193+00:00",
+  "updated_at": "2026-11-20T00:16:20.006396+00:00",
   "validation_started_at": null,
   "finish_message": null
 }

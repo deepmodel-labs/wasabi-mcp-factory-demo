@@ -1,6 +1,20 @@
 """Tool groups: one module per group, each exposing ``register(server, ctx)``.
 
-Adding a module to this package adds its tools; no shared list is edited.
+Adding a module to this package adds its tools; no shared list is edited. ``meta.py`` is
+the reference example. Every tool follows these conventions (PRD section 5):
+
+- Register with ``@server.tool(name="<noun>_<verb>", annotations=READ|WRITE|DESTRUCTIVE)``.
+  The docstring is the MCP description: one or two plain sentences on what the tool does
+  and returns.
+- W tools call ``require_writable(settings, "<Action>")`` first. D tools take
+  ``confirm: bool = False`` and call ``require_confirmed(settings, "<Action>", confirm)``
+  first. Guards run before any network call.
+- Return plain JSON via ``clean()``. Lists return ``{"items", "next_token", "truncated"}``
+  and take ``max_items`` and ``continuation_token``. Absent optional configuration returns
+  ``{"configured": false}``.
+- Turn botocore errors into ``raise explain(exc, "<Action>") from exc``; the ``rest``
+  helpers already raise ``ToolRefused``.
+- Never return the configured credentials.
 """
 
 from __future__ import annotations

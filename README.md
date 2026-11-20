@@ -45,6 +45,8 @@ To use it from an MCP client such as Claude Desktop or Claude Code, add it as a 
 
 `uv run wasabi-mcp --transport streamable-http` serves MCP over HTTP instead.
 
+To check the setup, call the `server_info` tool. It shows the version, region, read-only mode, endpoints and whether keys and WACM Connect are configured, without returning any credentials.
+
 ## Configuration
 
 | Variable | Default | Meaning |
