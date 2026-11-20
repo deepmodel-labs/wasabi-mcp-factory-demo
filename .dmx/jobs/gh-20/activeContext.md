@@ -34,3 +34,4 @@ d0cc045d04ccac9d8b7881df0226f9e82c39688e
 - dev loop completed (outcome: success) — chained to validate (job `gh-20`).
 - validate loop completed (outcome: success) — chained to release (job `gh-20`).
 - PR opened for: Pin GitHub Actions in ci.yml to commit SHAs and hand off the patch. Promoted the readable-ci.yml learning and the SHA-pinning rule to techContext.md.
+- release loop completed (outcome: success) (job `gh-20`).
