@@ -1,0 +1,26 @@
+{
+  "commit": "765a9c3b342b418b0dcd76b16e9c6eead919becf",
+  "scope_items": [
+    {"item": "AC: a unit test fails if any PRD section 6 tool is missing from the server, or if the server registers a tool the catalogue doesn't list", "verdict": "covered", "evidence": "tests/test_catalogue.py:78 (test_registered_tools_equal_the_catalogue, names missing/extra); tests/catalogue.py (166 rows)"},
+    {"item": "AC: a unit test proves every write tool refuses under default settings, and every destructive tool refuses without confirm=true", "verdict": "covered", "evidence": "tests/test_catalogue.py:146 (W/D refused read-only, no network), :158 (D refused without confirm), :107 (confirm defaults false), :165 (default read_only)"},
+    {"item": "AC: `uv run pytest` deselects live tests; `uv run pytest -m live` with real credentials runs the core flows and leaves no test buckets, objects or IAM entities behind", "verdict": "covered", "evidence": "pyproject.toml addopts -m 'not live' (1253 passed, 10 deselected); tests/live/conftest.py:540 session finalizer + cleanup(); tests/live/test_*.py. Not run against a real account (no credentials in this environment); moto dry run left 0 buckets/users/groups/policies"},
+    {"item": "AC: README lists every tool by area and every environment variable from PRD section 7", "verdict": "covered", "evidence": "README.md ## Tools; tests/test_docs.py:1264 and :1277 enforce both"},
+    {"item": "Scope: five multipart tools in transfer.py (PRD 6.5) with unit tests and docs rows", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/transfer.py:216-385; tests/tools/test_transfer.py; docs/tools/transfer.md:123-127"},
+    {"item": "Scope: tests/catalogue.py with every section 6 tool plus server_info, kind and module", "verdict": "covered", "evidence": "tests/catalogue.py"},
+    {"item": "Scope: tests/test_catalogue.py module origin, annotations, refusals, secret leak checks", "verdict": "covered", "evidence": "tests/test_catalogue.py:86 (modules), :102 (annotations), :1204 (R tools never return SECRETS incl. error text)"},
+    {"item": "Scope: tests/live suite (S1, S2, S4, S5, PRD 8.4 flows) with wasabi-mcp-test-<uuid> names and cleanup", "verdict": "covered", "evidence": "tests/live/test_buckets_objects.py, tests/live/test_iam.py, tests/live/test_scenarios.py, tests/live/conftest.py:548 new_name"},
+    {"item": "Scope: docs/tools.md assembled from docs/tools/*.md plus a test that its names equal list_tools", "verdict": "covered", "evidence": "tests/docs_tools.py; docs/tools.md; tests/test_docs.py:1243"},
+    {"item": "Scope: README tools by area, PRD section 7 variables, how to run lint, unit and live tests", "verdict": "covered", "evidence": "README.md ## Tools and ## Development"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Live cleanup runs even when a test fails mid-flow (e.g. object_rename fails, bucket still holds objects)", "addressed": true, "evidence": "tests/live/conftest.py:579 _empty_and_delete_bucket; verified by moto dry run with failing test leaving nothing behind"},
+    {"description": "Already-deleted resources during cleanup are tolerated", "addressed": true, "evidence": "tests/live/conftest.py:571 _ignore_gone"},
+    {"description": "multipart_upload_list continuation token that is not ours", "addressed": true, "evidence": "src/wasabi_mcp/tools/transfer.py:183 _decode_upload_marker"},
+    {"description": "multipart_upload_complete parts out of order / missing etag / bad part_number", "addressed": true, "evidence": "src/wasabi_mcp/tools/transfer.py:194 _check_parts"},
+    {"description": "part_count and expires_seconds out of range checked before CreateMultipartUpload", "addressed": true, "evidence": "src/wasabi_mcp/tools/transfer.py:327-329"},
+    {"description": "_check_parts accepts boolean part_number (True is an int subclass and passes as 1)", "addressed": false, "evidence": "src/wasabi_mcp/tools/transfer.py:200"},
+    {"description": "Stats API lag: new accounts/buckets may have no records", "addressed": true, "evidence": "tests/live/test_scenarios.py:890 shape-only assertions"}
+  ]
+}
