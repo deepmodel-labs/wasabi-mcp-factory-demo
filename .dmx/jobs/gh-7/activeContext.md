@@ -1,4 +1,5 @@
 ## Open Learnings
+- Rework asked for a rebase, but pushed history can't be rewritten here, so origin/main was merged in instead.
 
 ## Open Decisions
 
@@ -13,3 +14,4 @@
 - validate loop completed (outcome: success) — chained to release (job `gh-7`).
 - PR opened for: Add S3 object and presigned-URL tool groups. Before merge, it needs `origin/main` merged in (object_lock.py add/add conflict with #9).
 - release loop completed (outcome: success) (job `gh-7`).
+- Rework round 1: merged origin/main, took main's object_lock files (superset), kept both memory-bank sides; 392 tests pass.
