@@ -1,0 +1,24 @@
+{
+  "loop_name": "release",
+  "job_id": "gh-8",
+  "task_id": "f22da392-702c-4f15-9008-9280c169fc02",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "prune-jobs",
+    "create-pr"
+  ],
+  "skills_completed": [
+    "prune-jobs"
+  ],
+  "skill_outputs": {
+    "prune-jobs": "No finished jobs to remove. gh-1 is too recent (finished 0 days ago) and gh-8 is the current ticket."
+  },
+  "validator_results": [],
+  "outcome": null,
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T01:50:00.249817+00:00",
+  "updated_at": "2026-11-20T01:52:44.548683+00:00",
+  "validation_started_at": null,
+  "finish_message": null
+}
