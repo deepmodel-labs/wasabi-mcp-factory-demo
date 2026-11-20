@@ -17,12 +17,12 @@
 - [x] Add the five rows to `docs/tools/transfer.md` in catalogue order and remove the "added by another item" line
 
 ## Phase 2: Catalogue Contract Tests
-- [ ] Add `tests/catalogue.py` listing all 166 tools (section 6 plus `server_info`) with kind (R/W/D) and module, in PRD order
-- [ ] Add `tests/test_catalogue.py`: registered tool set equals catalogue (missing and extra each named), total 166
-- [ ] In `tests/test_catalogue.py`: register each group module on a fresh `MCPServer` and assert each tool comes from its catalogue module; assert annotations match kind
-- [ ] Add a schema-driven argument builder (dummy values for required params, `confirm=False`) and network guards (strict respx, botocore `before-send` hook via patched `Clients._client` that raises)
-- [ ] Test every W/D tool refuses on the default read-only server with no network call; every D tool has `confirm` defaulting to false and refuses without `confirm=true` on a writable server (WACM tools on `rest_settings`)
-- [ ] Test every R tool called with `conftest.SECRETS` in settings never returns those strings, including error text (PRD 8.5)
+- [x] Add `tests/catalogue.py` listing all 166 tools (section 6 plus `server_info`) with kind (R/W/D) and module, in PRD order
+- [x] Add `tests/test_catalogue.py`: registered tool set equals catalogue (missing and extra each named), total 166
+- [x] In `tests/test_catalogue.py`: register each group module on a fresh `MCPServer` and assert each tool comes from its catalogue module; assert annotations match kind
+- [x] Add a schema-driven argument builder (dummy values for required params, `confirm=False`) and network guards (strict respx, botocore `before-send` hook via patched `Clients._client` that raises)
+- [x] Test every W/D tool refuses on the default read-only server with no network call; every D tool has `confirm` defaulting to false and refuses without `confirm=true` on a writable server (WACM tools on `rest_settings`)
+- [x] Test every R tool called with `conftest.SECRETS` in settings never returns those strings, including error text (PRD 8.5)
 
 ## Phase 3: Live Suite
 - [ ] Add `tests/live/conftest.py`: skip unless `WASABI_LIVE=1` and keys set; writable server from `Settings.from_env()`; `wasabi-mcp-test-<uuid>` name factory; session finalizer deleting any buckets (with objects/versions), users, groups and policies created by the run

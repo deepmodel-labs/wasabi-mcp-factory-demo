@@ -12,13 +12,14 @@
     "implement-next-phase"
   ],
   "skill_outputs": {
-    "implement-next-phase": "Phase 1 (Multipart Tools, PRD 6.5) complete; all 7 tasks checked off.\n- transfer.py: added multipart_upload_list (R, list envelope, initiated, 31-day note), multipart_part_list (R), multipart_upload_abort (D, require_confirmed), multipart_upload_presign (W, part_count 1\u201310,000, _check_expires, upload_id + per-part URLs), multipart_upload_complete (W, parts [{part_number, etag}] validated); docstring updated.\n- tests/tools/test_transfer.py: moto-backed end-to-end presign/upload/list/complete, paging via botocore hooks, read-only and confirm refusals, part_count/expires/parts validation, NoSuchUpload/NoSuchBucket errors.\n- docs/tools/transfer.md: five rows in catalogue order; \"added by another item\" line removed.\n- Learning noted in activeContext.md about moto multipart limits.\n- Full gate passed: ruff check, ruff format --check, pytest (760 passed). Changes uncommitted."
+    "implement-next-phase": "Phase 2 (Catalogue Contract Tests) complete; all 6 tasks checked off.\n- tests/catalogue.py: 166 entries (PRD 6.1\u20136.14 in order plus server_info) with kind and module, generated from the PRD tables and cross-checked against each module's registrations.\n- tests/test_catalogue.py: registered set == catalogue (missing/extra named), total 166; each tool registered by its catalogue module (fresh MCPServer per group); annotations match kind; D tools have confirm=False default, R/W don't.\n- Schema-driven dummy args; strict network guard (respx catch-all + botocore before-send via patched Clients._client) proves every W/D tool refuses read-only, and every D tool refuses without confirm, with zero requests.\n- Secret-leak test runs every R tool against moto (seeded bucket/object/user) and respx Stats/WACM at 200 and 403; no SECRETS in results or error text.\n- tests/helpers.call made server/name positional-only so tools with a `name` param work. Mutation check confirmed a removed guard fails the test.\n- Full gate passed: ruff check, format --check, pytest (1247 passed). Uncommitted.",
+    "commit": "Committed 17a8e0e on feature-gh-15-add-catalogue-contract-tests-multipart (not pushed).\nfeat: add multipart upload tools to the transfer group \u2014 five PRD 6.5 tools, moto tests, docs/tools/transfer.md rows.\nMemory: promoted moto multipart test limits to .dmx/techContext.md; session note added to activeContext.md.\nStaged only project files and the gh-15 job folder; untracked environment dotfiles (.bashrc, .idea, .mcp.json, scripts, etc.) left out.\nNo attribution trailers. Footer: Closes #15."
   },
   "validator_results": [],
-  "outcome": null,
-  "iteration_count": 0,
+  "outcome": "success",
+  "iteration_count": 1,
   "timestamp": "2026-11-20T03:27:10.421286+00:00",
-  "updated_at": "2026-11-20T03:42:06.078521+00:00",
+  "updated_at": "2026-11-20T04:05:55.883846+00:00",
   "validation_started_at": null,
   "finish_message": null
 }
