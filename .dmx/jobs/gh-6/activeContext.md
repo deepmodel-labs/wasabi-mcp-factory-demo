@@ -3,7 +3,6 @@
 ## Open Decisions
 
 ## Session Notes
-- spec loop completed (outcome: success) — chained to plan (job `gh-6`).
 - plan loop completed (outcome: success) — chained to dev (job `gh-6`).
 - Added WACM helper, accounts and channels tool groups with tests — Phase 1 complete.
 - dev loop iterating (round 1) — repeat_until 'all_phases_complete' not yet met (job `gh-6`).
@@ -13,3 +12,4 @@
 - dev loop completed (outcome: success) — chained to validate (job `gh-6`).
 - PR opened for: Add WACM Connect tool groups (accounts, channels, sub-accounts, billing). Merged main into the branch first (systemPatterns.md conflict, both sides kept).
 - validate loop completed (outcome: success) — chained to release (job `gh-6`).
+- release loop completed (outcome: success) (job `gh-6`).
