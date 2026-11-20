@@ -6,7 +6,9 @@ missing, and with the service's own error code and message on a non-2xx response
 
 from __future__ import annotations
 
+import errno
 import json
+import socket
 from collections.abc import Mapping
 from typing import Any
 from urllib.parse import quote, urlencode
@@ -91,9 +93,86 @@ def _render_query(query: Query | None) -> str:
     return "?" + "&".join(parts)
 
 
-def _send(method: str, url: str, headers: Mapping[str, str], body: bytes | None) -> httpx.Response:
-    with httpx.Client(timeout=TIMEOUT) as client:
-        return client.send(client.build_request(method, url, headers=dict(headers), content=body))
+_DNS_HINTS = (
+    "name or service not known",
+    "nodename nor servname",
+    "getaddrinfo",
+    "temporary failure in name resolution",
+    "no address associated with hostname",
+)
+_TIMEOUT_PHASES: tuple[tuple[type[httpx.TimeoutException], str], ...] = (
+    (httpx.ConnectTimeout, "connecting to"),
+    (httpx.ReadTimeout, "reading from"),
+    (httpx.WriteTimeout, "writing to"),
+    (httpx.PoolTimeout, "waiting for a connection to"),
+)
+_CONNECT_CAUSES: tuple[tuple[str, tuple[int, ...], str], ...] = (
+    ("refused", (errno.ECONNREFUSED,), "connection refused"),
+    ("reset", (errno.ECONNRESET,), "connection reset"),
+    ("unreachable", (errno.ENETUNREACH, errno.EHOSTUNREACH), "host unreachable"),
+)
+
+
+def _exception_chain(exc: BaseException) -> tuple[BaseException, ...]:
+    """``exc`` and its ``__cause__``/``__context__`` ancestors, without cycles."""
+    chain: list[BaseException] = []
+    current: BaseException | None = exc
+    while current is not None and current not in chain:
+        chain.append(current)
+        current = current.__cause__ or current.__context__
+    return tuple(chain)
+
+
+def _is_dns_failure(chain: tuple[BaseException, ...]) -> bool:
+    return any(
+        isinstance(e, socket.gaierror) or any(h in str(e).lower() for h in _DNS_HINTS)
+        for e in chain
+    )
+
+
+def _connect_detail(chain: tuple[BaseException, ...]) -> str:
+    """`` (connection refused)``-style detail when the chain shows why, else ``""``."""
+    for hint, errnos, label in _CONNECT_CAUSES:
+        if any(
+            (isinstance(e, OSError) and e.errno in errnos) or hint in str(e).lower() for e in chain
+        ):
+            return f" ({label})"
+    return ""
+
+
+def _transport_error(
+    operation: str, url: str | httpx.URL, exc: httpx.TransportError
+) -> ToolRefused:
+    """A ``ToolRefused`` naming ``operation``, the host and why the request didn't complete.
+
+    The message is built only from the operation, the host and a classified reason,
+    never from ``str(exc)``, which can echo a signed URL.
+    """
+    host = httpx.URL(url).host or "the server"
+    chain = _exception_chain(exc)
+    if isinstance(exc, httpx.TimeoutException):
+        phase = next((p for kind, p in _TIMEOUT_PHASES if isinstance(exc, kind)), "talking to")
+        reason, code = f"timed out {phase} {host}", "Timeout"
+    elif isinstance(exc, httpx.ConnectError) and _is_dns_failure(chain):
+        reason, code = f"couldn't resolve host {host}", "DNSError"
+    elif isinstance(exc, httpx.ConnectError):
+        reason, code = f"couldn't connect to {host}{_connect_detail(chain)}", "NetworkError"
+    elif isinstance(exc, httpx.ReadError | httpx.WriteError | httpx.RemoteProtocolError):
+        reason, code = f"the connection to {host} was reset or closed", "NetworkError"
+    else:
+        reason, code = f"network error talking to {host}", "NetworkError"
+    return ToolRefused(f"{operation} failed: {reason}", code=code)
+
+
+def _send(
+    operation: str, method: str, url: str, headers: Mapping[str, str], body: bytes | None
+) -> httpx.Response:
+    try:
+        with httpx.Client(timeout=TIMEOUT) as client:
+            request = client.build_request(method, url, headers=dict(headers), content=body)
+            return client.send(request)
+    except httpx.TransportError as exc:
+        raise _transport_error(operation, url, exc) from exc
 
 
 def _sign(
@@ -133,7 +212,7 @@ def signed_s3(
     url = settings.s3_endpoint_for(name) + path + _render_query(query)
     request_headers = {**(headers or {}), "X-Amz-Content-SHA256": UNSIGNED_PAYLOAD}
     signed = _sign(_S3SigV4(credentials, "s3", name), method.upper(), url, request_headers, body)
-    response = _send(method.upper(), url, signed, body)
+    response = _send(action, method.upper(), url, signed, body)
     if not response.is_success:
         code, message = _xml_error(response)
         raise ToolRefused(f"{action} failed: {code}: {message}", code=code)
@@ -157,7 +236,7 @@ def iam_query(
     url = settings.iam_url + "/"
     headers = {"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"}
     signed = _sign(SigV4Auth(credentials, "iam", GLOBAL_REGION), "POST", url, headers, body)
-    response = _send("POST", url, signed, body)
+    response = _send(action_name, "POST", url, signed, body)
     if not response.is_success:
         code, message = _xml_error(response)
         raise ToolRefused(f"{action_name} failed: {code}: {message}")
@@ -217,8 +296,12 @@ def stats_get(settings: Settings, path: str, params: Mapping[str, Any] | None = 
         "Authorization": f"{settings.access_key_id}:{settings.secret_access_key}",
         "Accept": "application/json",
     }
-    with httpx.Client(timeout=TIMEOUT) as client:
-        response = client.get(settings.stats_url + path, params=query, headers=headers)
+    url = settings.stats_url + path
+    try:
+        with httpx.Client(timeout=TIMEOUT) as client:
+            response = client.get(url, params=query, headers=headers)
+    except httpx.TransportError as exc:
+        raise _transport_error(f"Stats API GET {path}", url, exc) from exc
     if not response.is_success:
         raise ToolRefused(
             f"Stats API GET {path} failed: HTTP {response.status_code}: {_json_error(response)}"
@@ -244,14 +327,18 @@ def wacm_request(
         )
     query = {k: v for k, v in (params or {}).items() if v is not None}
     auth = httpx.BasicAuth(settings.wacm_username or "", settings.wacm_api_key or "")
-    with httpx.Client(timeout=TIMEOUT, auth=auth) as client:
-        response = client.request(
-            method.upper(),
-            settings.wacm_url + path,
-            params=query,
-            json=body,
-            headers={"Accept": "application/json"},
-        )
+    url = settings.wacm_url + path
+    try:
+        with httpx.Client(timeout=TIMEOUT, auth=auth) as client:
+            response = client.request(
+                method.upper(),
+                url,
+                params=query,
+                json=body,
+                headers={"Accept": "application/json"},
+            )
+    except httpx.TransportError as exc:
+        raise _transport_error(f"WACM Connect {method.upper()} {path}", url, exc) from exc
     if not response.is_success:
         raise ToolRefused(
             f"WACM Connect {method.upper()} {path} failed: "
