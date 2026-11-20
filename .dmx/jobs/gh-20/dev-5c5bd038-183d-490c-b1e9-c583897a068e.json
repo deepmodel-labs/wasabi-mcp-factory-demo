@@ -12,13 +12,14 @@
     "implement-next-phase"
   ],
   "skill_outputs": {
-    "implement-next-phase": "Phase 1 (Resolve SHAs and Build the Hand-off) complete, 7/7 tasks checked.\n- actions/checkout v4.4.0 -> 11d5960a326750d5838078e36cf38b85af677262 (lightweight tag; ref and commits API agree)\n- astral-sh/setup-uv v6.8.0 -> d0cc045d04ccac9d8b7881df0226f9e82c39688e (lightweight tag; both methods agree); action.yml still has python-version input\n- Wrote .dmx/jobs/gh-20/ci.yml (all 4 uses: pinned with '# vX.Y.Z' comment, nothing else changed) and ci.yml.patch (a/ b/ .github/workflows/ci.yml paths)\n- git apply --check passes on a copy of main's ci.yml; applied result is byte-identical to ci.yml\n- SHA-check commands and output recorded in activeContext.md for the PR description\nPhase 2 (guard test + validation) is still to do."
+    "implement-next-phase": "Phase 2 (Pinning Guard Test and Validation) complete; all tasks in tasks.md now checked.\n- Added tests/test_ci_pinning.py: unpinned_uses() helper (every uses: must be owner/repo@<40-hex> # vX.Y.Z), a helper self-test, a check on the handed-off .dmx/jobs/gh-20/ci.yml (skips if absent/empty), and a check on the real .github/workflows/ci.yml that skips if unreadable/empty and xfails at runtime while tags remain (passes once the patch is applied)\n- ruff check and ruff format --check pass; pytest -q: 1255 passed, 10 deselected, 1 xfailed (the real ci.yml, as expected)\n- Recorded PR draft notes in activeContext.md: AC3 is checked after a maintainer applies the patch, how to apply it, and the Dependabot/Renovate follow-up",
+    "commit": "Committed 85b16db on chore-gh-20-pin-github-actions-in-ciyml-to-commit (not pushed).\nchore: pin ci actions to commit shas in hand-off patch \u2014 Closes #20\nStaged only .dmx/jobs/gh-20/ (spec, tasks, activeContext, loop state, ci.yml, ci.yml.patch); other untracked entries are /dev/null sandbox mounts and were left out.\nAdded a Phase 1 session note to activeContext.md; no core memory files promoted (the learning about ci.yml being readable applies only to this runner).\nNo Co-authored-by trailers in the message."
   },
   "validator_results": [],
-  "outcome": null,
-  "iteration_count": 0,
+  "outcome": "success",
+  "iteration_count": 1,
   "timestamp": "2026-11-20T06:06:44.176485+00:00",
-  "updated_at": "2026-11-20T06:08:06.247598+00:00",
+  "updated_at": "2026-11-20T06:22:39.166088+00:00",
   "validation_started_at": null,
   "finish_message": null
 }
