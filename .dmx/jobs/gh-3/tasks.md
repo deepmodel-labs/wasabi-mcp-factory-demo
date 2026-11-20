@@ -32,9 +32,9 @@ Every module follows PRD section 5 and the `tools/meta.py` pattern: `register(se
 - [x] Add `tests/tools/test_object_lock.py` (S9 flow: lock-enabled bucket → COMPLIANCE 7 years → get; validation errors; refusals; retention/legal hold on an object put directly via boto3 in the test) and `docs/tools/object_lock.md`
 
 ## Phase 5: Logging and inventory (`bucket_ops.py`, 6 tools)
-- [ ] Add `src/wasabi_mcp/tools/bucket_ops.py` with `bucket_logging_get` and `bucket_logging_set` (`target_bucket`, `target_prefix`, `enabled=false` clears; description says best effort, no SLA; surface LoggingBucketSameOwner)
-- [ ] Add inventory tools via `rest.signed_s3` + `rest.parse_xml`: `bucket_inventory_list` (`?inventory`), `bucket_inventory_get` (`?inventory&id=`), `bucket_inventory_set` (XML body; CSV only, Daily/Weekly, Current/All, prefix, destination bucket/prefix, optional fields validated against Wasabi's list), `bucket_inventory_delete`
-- [ ] Add `tests/tools/test_bucket_ops.py` (moto for logging; respx on `rest_server` for inventory incl. request-body assertions, invalid field rejection, S3 XML error, un-called routes on refusal) and `docs/tools/bucket_ops.md`
+- [x] Add `src/wasabi_mcp/tools/bucket_ops.py` with `bucket_logging_get` and `bucket_logging_set` (`target_bucket`, `target_prefix`, `enabled=false` clears; description says best effort, no SLA; surface LoggingBucketSameOwner)
+- [x] Add inventory tools via `rest.signed_s3` + `rest.parse_xml`: `bucket_inventory_list` (`?inventory`), `bucket_inventory_get` (`?inventory&id=`), `bucket_inventory_set` (XML body; CSV only, Daily/Weekly, Current/All, prefix, destination bucket/prefix, optional fields validated against Wasabi's list), `bucket_inventory_delete`
+- [x] Add `tests/tools/test_bucket_ops.py` (moto for logging; respx on `rest_server` for inventory incl. request-body assertions, invalid field rejection, S3 XML error, un-called routes on refusal) and `docs/tools/bucket_ops.md`
 
 ## Phase 6: Replication (`bucket_replication.py`, 4 tools)
 - [ ] Add `src/wasabi_mcp/tools/bucket_replication.py` with `bucket_replication_get` (`{"configured": false}` on ReplicationConfigurationNotFoundError) and `bucket_replication_delete`
