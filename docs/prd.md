@@ -518,7 +518,7 @@ All use `rest.wacm_request` with HTTP Basic (`WASABI_WACM_USERNAME`, `WASABI_WAC
 
 ## 7. Configuration
 
-Environment variables only, read once by `Settings.from_env()` (section 4.2).
+Environment variables only, read once by `Settings.from_env()` (section 4.2), except the two HTTP transport variables, which the CLI reads at startup.
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -528,6 +528,8 @@ Environment variables only, read once by `Settings.from_env()` (section 4.2).
 | `WASABI_WACM_USERNAME`, `WASABI_WACM_API_KEY` | — | WACM Connect (account or user API key). S3 keys don't work for WACM. |
 | `WASABI_S3_ENDPOINT`, `WASABI_IAM_ENDPOINT`, `WASABI_STS_ENDPOINT`, `WASABI_STATS_ENDPOINT`, `WASABI_WACM_ENDPOINT` | Wasabi's public endpoints | Overrides. |
 | `WASABI_MCP_SECRETS_DIR` | — | Optional. When set, the six tools that create credentials write each new secret to a new `0600` file there (directory created `0700`; refused if group- or world-accessible or not writable, before the Wasabi call) and return the file path and non-secret identifiers instead of the secret. |
+| `WASABI_MCP_HTTP_TOKEN` | — | Bearer token for the streamable-HTTP transport on a non-loopback `--host`. Read by the CLI (`server.main`), not `Settings`. A non-loopback host is refused at startup unless `--allow-remote` is passed and this is non-empty; every request must then send `Authorization: Bearer <token>` (401 otherwise). Loopback hosts need no token. |
+| `WASABI_MCP_ALLOWED_HOSTS` | — | Comma-separated extra `Host` header values for the streamable-HTTP transport, added to `--allowed-host` and the defaults (bound host, `127.0.0.1`, `localhost`, `::1`). DNS-rebinding protection is always on; other hosts get 421. |
 
 ## 8. Acceptance criteria
 

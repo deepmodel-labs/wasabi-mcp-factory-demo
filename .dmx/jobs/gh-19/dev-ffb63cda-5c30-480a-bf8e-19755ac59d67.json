@@ -12,13 +12,14 @@
     "implement-next-phase"
   ],
   "skill_outputs": {
-    "implement-next-phase": "Implemented Phase 1 (HTTP Security Core) in src/wasabi_mcp/server.py; all 7 tasks checked off in tasks.md.\n- Added is_loopback_host, allowed_hosts/split_hosts (hosts normalised to the SDK's forms), allowed_origins and BearerTokenMiddleware (hmac, 401 + WWW-Authenticate: Bearer).\n- http_app() builds the streamable-http app with explicit TransportSecuritySettings (DNS-rebinding protection on) and adds the token middleware only for remote.\n- main(): --allow-remote, repeatable --allowed-host, WASABI_MCP_HTTP_TOKEN and WASABI_MCP_ALLOWED_HOSTS; parser.error refuses a non-loopback host before build_server(); serves via uvicorn.run.\n- Smoke-tested: 401 without the token (on /mcp and on an unknown path), 200 initialize with it, 421 for a bad Host; refusals exit with code 2 and name the missing piece.\n- ruff passes and the full suite passes (1320 passed). Phase 2 (tests and docs) is not started."
+    "implement-next-phase": "Implemented Phase 2 (Tests & Docs); all tasks in tasks.md are now checked.\n- New tests/test_http_security.py (56 tests): non-loopback host refused without --allow-remote, and refused with it when the token is missing, empty or whitespace (exit 2, message names the missing piece; build_server and uvicorn monkeypatched to fail); loopback hosts start with no token; 401 + WWW-Authenticate for a missing, wrong or wrong-scheme token on /mcp and on an unknown path; 200 with the token; 421 for a disallowed Host and 403 for a foreign Origin; hosts from defaults, --allowed-host and the env var accepted; token never in logs or output.\n- README: Remote HTTP section (opt-in, token, allowed hosts, reverse-proxy/TLS example, breaking-change note), both env vars in the Configuration table, and a Safety bullet.\n- docs/prd.md section 7: both env vars added; tests/test_docs.py pinned count 12 \u2192 14.\n- .dmx/systemPatterns.md: HTTP transport security pattern note.\n- ruff check and format pass; full suite passes (1376 passed).",
+    "commit": "Committed aedaa4e on feature-gh-19-secure-remote-http-with-opt-in-bearer: \"feat: require opt-in and bearer token for non-loopback streamable-http\" (Closes #19).\nStaged only src/wasabi_mcp/server.py and .dmx/jobs/gh-19/; the untracked environment dotfiles, .idea/.vscode and scripts were left out.\nAdded a Phase 1 session note to activeContext.md. Open Learnings stay in the inbox; the systemPatterns note is a Phase 2 task.\nNo AI attribution trailers. Not pushed."
   },
   "validator_results": [],
-  "outcome": null,
-  "iteration_count": 0,
+  "outcome": "success",
+  "iteration_count": 1,
   "timestamp": "2026-11-20T09:41:49.772982+00:00",
-  "updated_at": "2026-11-20T09:55:01.870495+00:00",
+  "updated_at": "2026-11-20T10:06:34.960805+00:00",
   "validation_started_at": null,
   "finish_message": null
 }

@@ -43,7 +43,7 @@ To use it from an MCP client such as Claude Desktop or Claude Code, add it as a 
 }
 ```
 
-`uv run wasabi-mcp --transport streamable-http` serves MCP over HTTP instead.
+`uv run wasabi-mcp --transport streamable-http` serves MCP over HTTP instead, at `http://127.0.0.1:8000/mcp`. See [Remote HTTP](#remote-http) before serving on any other address.
 
 To check the setup, call the `server_info` tool. It shows the version, region, read-only mode, endpoints, whether keys and WACM Connect are configured and whether a secrets directory is in use, without returning any credentials.
 
@@ -57,6 +57,41 @@ To check the setup, call the `server_info` tool. It shows the version, region, r
 | `WASABI_WACM_USERNAME`, `WASABI_WACM_API_KEY` | (none) | WACM Connect credentials. Needed only for the account governance tools. |
 | `WASABI_S3_ENDPOINT`, `WASABI_IAM_ENDPOINT`, `WASABI_STS_ENDPOINT`, `WASABI_STATS_ENDPOINT`, `WASABI_WACM_ENDPOINT` | Wasabi's public endpoints | Overrides, for private endpoints and tests. |
 | `WASABI_MCP_SECRETS_DIR` | (none) | A directory for new secrets. When set, tools that create credentials write each secret to a file there instead of returning it. See [New secrets](#new-secrets). |
+| `WASABI_MCP_HTTP_TOKEN` | (none) | The bearer token every HTTP request must present when the server runs on a non-loopback host. Required with `--allow-remote`. See [Remote HTTP](#remote-http). |
+| `WASABI_MCP_ALLOWED_HOSTS` | (none) | Extra `Host` header values the HTTP transport accepts, comma-separated (`host` or `host:port`). Adds to `--allowed-host`. See [Remote HTTP](#remote-http). |
+
+### Remote HTTP
+
+The HTTP transport gives whoever can reach it full control of the configured Wasabi account, so by default it listens only on `127.0.0.1`. Loopback hosts (`127.0.0.1` and the rest of `127.0.0.0/8`, `::1`, `localhost`) need no token.
+
+To serve on any other `--host`, such as `0.0.0.0` or a LAN address, you need both:
+
+- **`--allow-remote`**, an explicit opt-in. Without it the server refuses to start.
+- **`WASABI_MCP_HTTP_TOKEN`**, a bearer token. Without it (or if it is empty) the server refuses to start. Every request, to any path, must then send `Authorization: Bearer <token>`; anything else gets `401 Unauthorized`. The token is never logged or returned.
+
+```sh
+export WASABI_MCP_HTTP_TOKEN="$(openssl rand -hex 32)"
+uv run wasabi-mcp --transport streamable-http --host 0.0.0.0 --allow-remote \
+  --allowed-host mcp.example.com
+```
+
+DNS-rebinding protection is always on: a request whose `Host` header isn't on the allowed list gets `421`, and a browser `Origin` that doesn't match an allowed host gets `403`. The list always has the bound `--host`, `127.0.0.1`, `localhost` and `::1`. Add the names clients actually use with `--allowed-host` (repeatable) or `WASABI_MCP_ALLOWED_HOSTS` (comma-separated). An entry without a port accepts any port and no port; `host:port` accepts only that port. Clients never send `0.0.0.0` as the host, so a server bound to it needs at least one `--allowed-host`.
+
+The server speaks plain HTTP. Put TLS in front with a reverse proxy and keep the server itself on loopback, or on a private interface with the token. For example, with Caddy:
+
+```
+mcp.example.com {
+    reverse_proxy 127.0.0.1:8000
+}
+```
+
+```sh
+uv run wasabi-mcp --transport streamable-http --allowed-host mcp.example.com
+```
+
+Here the server stays on `127.0.0.1`, so the proxy (or your own auth in it) is the only way in. If the proxy runs on another machine, bind to a private address with `--allow-remote` and the token, and have the client send the token.
+
+**Breaking change:** earlier versions served a non-loopback `--host` with no authentication and no `Host` check. Such setups now fail to start until you add `--allow-remote` and `WASABI_MCP_HTTP_TOKEN`, and clients must send the token. Clients that reach the server through a hostname need it added with `--allowed-host`.
 
 ### New secrets
 
@@ -78,6 +113,7 @@ If the file still can't be written after Wasabi created the credential, the tool
 - **The server starts read-only.** Every tool is marked read or write in its MCP annotations, and write tools refuse while `WASABI_MCP_READ_ONLY` is on.
 - **Destructive tools also need `confirm=true` in the call.** These are deletes and changes to policies or access.
 - **Credentials come only from the environment.** The server never logs or returns your configured credentials. Tools that create new credentials (IAM access keys, console passwords, MFA devices, STS sessions, sub-accounts) need `confirm=true` and return the new secret once, or write it to a private file instead when `WASABI_MCP_SECRETS_DIR` is set.
+- **HTTP stays on loopback unless you opt in.** A non-loopback `--host` needs `--allow-remote` and a `WASABI_MCP_HTTP_TOKEN` bearer token, and `Host` headers are always checked. See [Remote HTTP](#remote-http).
 
 ## Tools
 
