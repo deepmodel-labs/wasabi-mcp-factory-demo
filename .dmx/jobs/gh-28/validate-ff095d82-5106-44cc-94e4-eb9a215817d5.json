@@ -1,0 +1,58 @@
+{
+  "loop_name": "validate",
+  "job_id": "gh-28",
+  "task_id": "ff095d82-5106-44cc-94e4-eb9a215817d5",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "validate"
+  ],
+  "skills_completed": [
+    "validate"
+  ],
+  "skill_outputs": {
+    "validate": "Validated gh-28 at 3cdd271 against origin/main: verdict READY FOR PR.\nTasks 11/11 complete; all 11 scope items covered (IsPrincipal omitted by default / false for resource policies, evaluation field, iam_query malformed-body fallback, <Detail> in errors, docs, respx + rest + live tests, techContext).\nNo scope creep and no regressions. Lint, format and pytest pass (1327 passed); docs regen unchanged.\nOne nit: rest.py opening-tag find is a prefix match (theoretical only). No security findings.\nWrote .dmx/jobs/gh-28/validation-report.json."
+  },
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "Tests passed \u2014 ran `uv run ruff check . && uv run ruff format --check . && uv run pytest -q` (exit 0)",
+      "checks": [
+        {
+          "name": "tests_pass",
+          "pass": true,
+          "message": "........................................................................ [  5%]\n........................................................................ [ 10%]\n........................................................................ [ 16%]\n........................................................................ [ 21%]\n........................................................................ [ 27%]\n........................................................................ [ 32%]\n........................................................................ [ 37%]\n........................................................................ [ 43%]\n........................................................................ [ 48%]\n........................................................................ [ 54%]\n........................................................................ [ 59%]\n........................................................................ [ 65%]\n........................................................................ [ 70%]\n........................................................................ [ 75%]\n........................................................................ [ 81%]\n........................................................................ [ 86%]\n........................................................................ [ 92%]\n........................................................................ [ 97%]\n...............................                                          [100%]\n1327 passed, 12 deselected in 506.00s (0:08:26)"
+        }
+      ],
+      "tool": "run_tests"
+    },
+    {
+      "pass": true,
+      "message": "Spec adherence check passed",
+      "checks": [
+        {
+          "name": "scope_matches_spec",
+          "pass": true,
+          "message": "All 11 scope item(s) covered in the diff"
+        },
+        {
+          "name": "edge_cases_addressed",
+          "pass": true,
+          "message": "All 6 flagged edge case(s) addressed"
+        },
+        {
+          "name": "no_regressions",
+          "pass": true,
+          "message": "No regressions found in the diff"
+        }
+      ],
+      "tool": "spec_adherence"
+    }
+  ],
+  "outcome": "success",
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T09:16:25.131061+00:00",
+  "updated_at": "2026-11-20T09:39:47.838899+00:00",
+  "validation_started_at": "2026-11-20T09:31:12.117965+00:00",
+  "finish_message": "**validate loop \u2014 complete** (outcome: `success`)\n\nChaining automatically to **release** loop.\n\nMemory context (from `.dmx/jobs/gh-28/activeContext.md`):\nOpen Learnings:\n- The live syntax-error case uses valid JSON with `Action: 42`, since `policy_json` rejects invalid JSON before any call; whether Wasabi calls that `MalformedPolicyDocument` is unmeasured.\n\nLOOP RUNTIME \u2014 do not suggest workflow commands or alternative paths.\n\nNext skill: `prune-jobs` (Loop: release | Skill 1/2) | Job: `gh-28` | Task: `b34a5297`\nTicket files: `.dmx/jobs/gh-28/spec.md`, `tasks.md`, `activeContext.md` (in that folder).\n\nREQUIRED: Call `get_skill_definition` with name=`prune-jobs` to fetch the skill instructions, then execute them exactly as written.\n\nREQUIRED: When the skill finishes, you MUST immediately call the `loop_advance` MCP tool with `skill`=`prune-jobs` and, as the `output` argument, a summary of what the skill did in 10 lines or fewer. Do not wait for user input. Do not suggest next steps. Call loop_advance."
+}
