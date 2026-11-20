@@ -1,0 +1,29 @@
+{
+  "commit": "cc01138ea241efc18a326bb2cb25ad80a630e078",
+  "scope_items": [
+    {"item": "src/wasabi_mcp/tools/buckets.py, 11 tools (6.1) with tests and docs/tools/buckets.md", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/buckets.py:70-288, tests/tools/test_buckets.py, docs/tools/buckets.md"},
+    {"item": "src/wasabi_mcp/tools/access.py, 7 tools (6.6) with tests and docs/tools/access.md", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/access.py:102-233, tests/tools/test_access.py, docs/tools/access.md"},
+    {"item": "src/wasabi_mcp/tools/bucket_rules.py, 6 tools (6.7) with tests and docs/tools/bucket_rules.md", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/bucket_rules.py:134-223, tests/tools/test_bucket_rules.py, docs/tools/bucket_rules.md"},
+    {"item": "src/wasabi_mcp/tools/object_lock.py, 6 tools (6.8) with tests and docs/tools/object_lock.md", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/object_lock.py:100-244, tests/tools/test_object_lock.py, docs/tools/object_lock.md"},
+    {"item": "src/wasabi_mcp/tools/bucket_ops.py, 6 tools (6.10 logging and inventory) with tests and docs/tools/bucket_ops.md", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/bucket_ops.py:155-312, tests/tools/test_bucket_ops.py, docs/tools/bucket_ops.md"},
+    {"item": "src/wasabi_mcp/tools/bucket_replication.py, 4 tools (6.10) with tests and docs/tools/bucket_replication.md", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/bucket_replication.py:120-215, tests/tools/test_bucket_replication.py, docs/tools/bucket_replication.md"},
+    {"item": "Names and kinds exactly as in the catalogue, with READ/WRITE/DESTRUCTIVE annotations", "verdict": "covered", "evidence": "@server.tool(name=..., annotations=...) in all six modules; list_tools returns 41 tools (40 + server_info)"},
+    {"item": "Guards before any network call; confirm: bool = False on D tools", "verdict": "covered", "evidence": "require_writable/require_confirmed as first statement in every W/D tool, e.g. buckets.py:142,168; refusal tests in each tests/tools/test_<module>.py"},
+    {"item": "clean() output, list pagination, {\"configured\": false} for absent optional configuration", "verdict": "covered", "evidence": "buckets.py:89-93,244; access.py:110; bucket_rules.py:142,185; object_lock.py:160; bucket_ops.py:224-228,247; bucket_replication.py:128"},
+    {"item": "explain(exc, \"<Action>\") on botocore errors", "verdict": "covered", "evidence": "every boto3 call wrapped in except (ClientError, BotoCoreError) -> explain/_fail; error-format test in tests/tools/test_buckets.py"},
+    {"item": "Bucket write tools resolve the bucket's region (5.3)", "verdict": "covered", "evidence": "buckets.py:57-68, access.py:90-100, bucket_rules.py:122-132, object_lock.py:88-98, bucket_ops.py:143-153, bucket_replication.py:101-111"},
+    {"item": "No edits to shared files (PRD 8.7)", "verdict": "covered", "evidence": "git diff --stat: only new tool modules, tests/tools/*, docs/tools/*, and .dmx memory/job files"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Lifecycle transitions rejected before calling Wasabi", "addressed": true, "evidence": "src/wasabi_mcp/tools/bucket_rules.py:86-91"},
+    {"description": "Object lock days xor years and mode validation", "addressed": true, "evidence": "src/wasabi_mcp/tools/object_lock.py:39-58"},
+    {"description": "Policy JSON validated (dict or str) before PutBucketPolicy", "addressed": true, "evidence": "src/wasabi_mcp/tools/access.py:35-47"},
+    {"description": "Replication versioning parity checked on both buckets before PutBucketReplication", "addressed": true, "evidence": "src/wasabi_mcp/tools/bucket_replication.py:170-179"},
+    {"description": "Cross-account replication: the parity check calls GetBucketLocation/GetBucketVersioning on the destination bucket with the source account's keys, which may be denied for a bucket in another account and block the call", "addressed": false, "evidence": "src/wasabi_mcp/tools/bucket_replication.py:173"},
+    {"description": "bucket_acl_set/object_acl_set with grants=[] passes validation and would send an empty grant list (removing all access, owner included)", "addressed": false, "evidence": "src/wasabi_mcp/tools/access.py:57-79"},
+    {"description": "max_items bounds (1-1000) enforced on bucket_list", "addressed": true, "evidence": "src/wasabi_mcp/tools/buckets.py:47-50"},
+    {"description": "Inventory optional fields, frequency, versions and CSV-only validated", "addressed": true, "evidence": "src/wasabi_mcp/tools/bucket_ops.py:60-114"}
+  ]
+}
