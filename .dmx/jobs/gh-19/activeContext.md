@@ -11,3 +11,4 @@
 - dev loop completed (outcome: success) — chained to validate (job `gh-19`).
 - validate loop completed (outcome: success) — chained to release (job `gh-19`).
 - PR opened for: Secure remote HTTP with opt-in, bearer token and allowed hosts.
+- release loop completed (outcome: success) (job `gh-19`).
