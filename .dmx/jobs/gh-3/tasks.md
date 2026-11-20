@@ -27,9 +27,9 @@ Every module follows PRD section 5 and the `tools/meta.py` pattern: `register(se
 - [x] Add `tests/tools/test_bucket_rules.py` (moto happy paths incl. S5 90-day `tmp/` expiry, transition rejection, refusals) and `docs/tools/bucket_rules.md`
 
 ## Phase 4: Object Lock, retention and legal hold (`object_lock.py`, 6 tools)
-- [ ] Add `src/wasabi_mcp/tools/object_lock.py` with `bucket_object_lock_get` and `bucket_object_lock_set` (`mode` COMPLIANCE/GOVERNANCE, `days` xor `years`, `clear_default=true` sends `Enabled` only; description says lock can only be enabled at creation)
-- [ ] Add `object_retention_get`, `object_retention_set` (`mode`, ISO 8601 `retain_until` parsed before calling, `bypass_governance`; description says compliance can't be shortened), `object_legal_hold_get`, `object_legal_hold_set` (`on: bool`)
-- [ ] Add `tests/tools/test_object_lock.py` (S9 flow: lock-enabled bucket → COMPLIANCE 7 years → get; validation errors; refusals; retention/legal hold on an object put directly via boto3 in the test) and `docs/tools/object_lock.md`
+- [x] Add `src/wasabi_mcp/tools/object_lock.py` with `bucket_object_lock_get` and `bucket_object_lock_set` (`mode` COMPLIANCE/GOVERNANCE, `days` xor `years`, `clear_default=true` sends `Enabled` only; description says lock can only be enabled at creation)
+- [x] Add `object_retention_get`, `object_retention_set` (`mode`, ISO 8601 `retain_until` parsed before calling, `bypass_governance`; description says compliance can't be shortened), `object_legal_hold_get`, `object_legal_hold_set` (`on: bool`)
+- [x] Add `tests/tools/test_object_lock.py` (S9 flow: lock-enabled bucket → COMPLIANCE 7 years → get; validation errors; refusals; retention/legal hold on an object put directly via boto3 in the test) and `docs/tools/object_lock.md`
 
 ## Phase 5: Logging and inventory (`bucket_ops.py`, 6 tools)
 - [ ] Add `src/wasabi_mcp/tools/bucket_ops.py` with `bucket_logging_get` and `bucket_logging_set` (`target_bucket`, `target_prefix`, `enabled=false` clears; description says best effort, no SLA; surface LoggingBucketSameOwner)
