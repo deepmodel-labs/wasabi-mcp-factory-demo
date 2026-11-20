@@ -1,0 +1,49 @@
+{
+  "loop_name": "release",
+  "job_id": "gh-20",
+  "task_id": "fcb6c4f7-5787-4d23-a2ef-209ea571d126",
+  "status": "complete",
+  "current_skill_index": 2,
+  "skills": [
+    "prune-jobs",
+    "create-pr"
+  ],
+  "skills_completed": [
+    "prune-jobs",
+    "create-pr"
+  ],
+  "skill_outputs": {
+    "prune-jobs": "No finished jobs to remove. Every other job finished less than 30 days ago, and gh-20 is the current ticket. No commit made.",
+    "create-pr": "PR created: https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/pull/22 (base main, head chore-gh-20-pin-github-actions-in-ciyml-to-commit). Title follows the repo's \"Feature | #N Title Case\" convention, as in earlier merged PRs.\nTicket: gh-20 \u2192 in-review (in-progress label removed, chore kept).\nMemory: promoted the readable-.github learning and the SHA-pinning rule to techContext.md. Committed as a7cb05d \"chore: sync memory bank for gh-20\" with the loop snapshot and validation report; pushed.\nPR body: the hand-off patch diff, apply instructions, SHA-check commands and output, validation results, and a note that AC3 (CI passes on the pinned actions) is checked once a maintainer applies the patch. Follow-up: Dependabot/Renovate."
+  },
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "PR ready check passed",
+      "checks": [
+        {
+          "name": "pr_exists",
+          "pass": true,
+          "message": "PR open: https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/pull/22"
+        },
+        {
+          "name": "ticket_transitioned",
+          "pass": true,
+          "message": "Ticket 'gh-20' transition not verified \u2014 requires ticketing API access. Confirm manually or override this validator for automated checking."
+        },
+        {
+          "name": "memory_updated",
+          "pass": true,
+          "message": "Memory bank files updated in the latest commit"
+        }
+      ],
+      "tool": "check_pr_ready"
+    }
+  ],
+  "outcome": "success",
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T06:44:07.607117+00:00",
+  "updated_at": "2026-11-20T06:46:11.529025+00:00",
+  "validation_started_at": "2026-11-20T06:46:07.534890+00:00",
+  "finish_message": "**release loop \u2014 complete \u2713**\n\nJob: `gh-20` | Outcome: `success`"
+}

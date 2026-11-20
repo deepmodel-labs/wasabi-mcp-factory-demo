@@ -1,0 +1,22 @@
+{
+  "commit": "7f3787fe677dac362eb7022f8e0cb43a2ee46950",
+  "scope_items": [
+    {"item": "Resolve commit SHAs at hand-off time via GitHub API for actions/checkout v4.4.0 and astral-sh/setup-uv v6.8.0 (latest in current majors)", "verdict": "covered", "evidence": ".dmx/jobs/gh-20/activeContext.md:4-18 (re-verified in validate: ref and commits APIs agree, both lightweight tags, both latest in major)"},
+    {"item": "Rewrite all four uses: entries to owner/repo@<40-char sha> # vX.Y.Z", "verdict": "covered", "evidence": ".dmx/jobs/gh-20/ci.yml:17-18,48,50"},
+    {"item": "Hand-off files: full ci.yml and ci.yml.patch that git apply accepts", "verdict": "covered", "evidence": ".dmx/jobs/gh-20/ci.yml.patch:1-25 (git apply --check on origin/main copy passes; result cmp-identical to ci.yml)"},
+    {"item": "PR description with diff, apply instructions, and SHA-check commands/output", "verdict": "partial", "evidence": ".dmx/jobs/gh-20/activeContext.md:4-25 (drafted; PR is opened in the create-pr step)"},
+    {"item": "Pytest guard checking every uses: is SHA-pinned with tag comment, on the handed-off file and the real ci.yml (xfail until applied, skip if unreadable)", "verdict": "covered", "evidence": "tests/test_ci_pinning.py:24-61"},
+    {"item": "AC1: handed-off YAML pins every uses: entry to a 40-char SHA with '# vX.Y.Z' comment", "verdict": "covered", "evidence": ".dmx/jobs/gh-20/ci.yml:17-18,48,50; tests/test_ci_pinning.py:50-53"},
+    {"item": "AC2: each SHA matches the commit the named upstream tag points to", "verdict": "covered", "evidence": ".dmx/jobs/gh-20/activeContext.md:5-14"},
+    {"item": "AC3: after a person applies it, CI runs and passes on the pinned actions", "verdict": "partial", "evidence": ".dmx/jobs/gh-20/activeContext.md:22 (can only be confirmed after maintainer applies the patch; local test_command passes)"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Real .github/workflows/ci.yml unreadable or empty (/dev/null mount) in runner", "addressed": true, "evidence": "tests/test_ci_pinning.py:30-38"},
+    {"description": "Real ci.yml still unpinned before the maintainer applies the patch must not break CI, and must not XPASS-fail after it is applied", "addressed": true, "evidence": "tests/test_ci_pinning.py:56-61"},
+    {"description": "Handed-off file with no uses: lines would vacuously pass", "addressed": true, "evidence": "tests/test_ci_pinning.py:52"},
+    {"description": "uses: lines both as list item (- uses:) and as continuation key under - if:", "addressed": true, "evidence": "tests/test_ci_pinning.py:20,41-47"},
+    {"description": "Hand-off test silently skips if the job folder is pruned later", "addressed": true, "evidence": "tests/test_ci_pinning.py:30-35"}
+  ]
+}

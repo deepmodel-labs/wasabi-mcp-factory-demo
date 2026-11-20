@@ -1,0 +1,56 @@
+{
+  "loop_name": "spec",
+  "job_id": "gh-20",
+  "task_id": "136a1a24-1e45-42bf-9324-0cab32a18b48",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "create-ticket"
+  ],
+  "skills_completed": [
+    "create-ticket"
+  ],
+  "skill_outputs": {
+    "create-ticket": "Created GitHub issue #20 (gh-20, label chore + in-progress): \"Pin GitHub Actions in ci.yml to commit SHAs and hand off the patch\" \u2014 https://github.com/deepmodel-labs/wasabi-mcp-factory-demo/issues/20\nCreated branch chore-gh-20-pin-github-actions-in-ciyml-to-commit from main (f78eca9) and checked it out locally (upstream tracking not set: .git/config.lock is a mounted device).\nWrote .dmx/jobs/_pending-136a1a24/spec.md: pin actions/checkout v4.4.0 and astral-sh/setup-uv v6.8.0 (latest in current majors) to 40-char SHAs with '# vX.Y.Z' comments across all 4 uses: entries.\nHand-off: full ci.yml + unified ci.yml.patch in job folder and PR description; SHAs verified via gh api at hand-off; optional pytest guard.\nQuestions answered in spec: stay on current majors, ship both file and diff, exact patch tag comments, guard test skips when .github is unreadable."
+  },
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "Spec completeness check passed",
+      "checks": [
+        {
+          "name": "spec_exists",
+          "pass": true,
+          "message": "spec.md exists"
+        },
+        {
+          "name": "qa_answered",
+          "pass": true,
+          "message": "Q&A section has 4/4 answered question(s)"
+        },
+        {
+          "name": "technical_approach_filled",
+          "pass": true,
+          "message": "Technical Approach section has content"
+        },
+        {
+          "name": "scope_defined",
+          "pass": true,
+          "message": "Scope section has content"
+        },
+        {
+          "name": "spec_identity_matches_branch",
+          "pass": true,
+          "message": "spec.md branch matches chore-gh-20-pin-github-actions-in-ciyml-to-commit"
+        }
+      ],
+      "tool": "check_spec_complete"
+    }
+  ],
+  "outcome": "success",
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T06:03:48.985256+00:00",
+  "updated_at": "2026-11-20T06:05:32.812517+00:00",
+  "finish_message": "**spec loop \u2014 complete** (outcome: `success`)\n\nChaining automatically to **plan** loop.\n\nLOOP RUNTIME \u2014 do not suggest workflow commands or alternative paths.\n\nNext skill: `plan` (Loop: plan | Skill 1/1) | Job: `gh-20` | Task: `7cd16f33`\nTicket files: `.dmx/jobs/gh-20/spec.md`, `tasks.md`, `activeContext.md` (in that folder).\n\nREQUIRED: Call `get_skill_definition` with name=`plan` to fetch the skill instructions, then execute them exactly as written.\n\nREQUIRED: When the skill finishes, you MUST immediately call the `loop_advance` MCP tool with `skill`=`plan` and, as the `output` argument, a summary of what the skill did in 10 lines or fewer. Do not wait for user input. Do not suggest next steps. Call loop_advance.",
+  "validation_started_at": "2026-11-20T06:05:29.726583+00:00"
+}

@@ -43,7 +43,8 @@
 - Wasabi endpoints: `https://s3.<region>.wasabisys.com` (path-style), `https://iam.wasabisys.com`, `https://sts.wasabisys.com`, `https://stats.wasabisys.com` (not `api.stats...`), and `https://api.wacm.wasabisys.com/api`.
 - Build only from public documentation. Never copy code from Wasabi's official MCP server or any third-party Wasabi MCP project.
 - Never log or return the configured credentials.
-- The factory runner can't write `.github/` (it's mounted as /dev/null). Changes to `.github/workflows/ci.yml` go to a maintainer: put the exact YAML in the job folder and the PR description.
+- The factory runner can't write `.github/` (it's mounted as /dev/null). Changes to `.github/workflows/ci.yml` go to a maintainer: put the exact YAML in the job folder and the PR description. In some runners `.github/workflows/ci.yml` is readable (only writes are blocked), so compare against `origin/main` rather than assuming it's empty.
+- Every `uses:` in CI must be pinned to a full 40-character commit SHA with the exact tag in a trailing `# vX.Y.Z` comment. Resolve the SHA with `gh api repos/<owner>/<repo>/git/ref/tags/<tag>` (follow `git/tags/<sha>` for annotated tags) and cross-check it with `gh api repos/<owner>/<repo>/commits/<tag> --jq .sha`. `tests/test_ci_pinning.py` guards this.
 - A ranged GetObject on an empty object fails with `InvalidRange`; treat that as an empty body.
 - Wasabi doesn't support AWS flexible checksums: botocore 1.44 validates GetObject response checksums by default and breaks on appended objects. Every client is built from `clients.BASE_CONFIG`, with `response_checksum_validation` and `request_checksum_calculation` set to `when_required`.
 - A catch-all `except Exception` around a boto3 call must not also wrap helpers that raise `ToolRefused` themselves (such as `objects_read._s3`'s region lookup), or their clear errors get replaced.
