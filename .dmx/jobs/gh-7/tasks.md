@@ -46,3 +46,11 @@ From review comments on the `dev` run `c833a8f7`. dmx wrote these tasks from the
   - …ersion is missing something this ticket's tools need.
   - 2) .dmx/productContext.md and .dmx/systemPatterns.md: keep both sides' content (main's plus this ticket's learnings), with no duplicated bullets.
   - Then re-run the tests and push. CI and the merge gate will take it from there.
+
+## Phase 5: Rework — dev, round 2
+
+From review comments on the `dev` run `e161209b`. dmx wrote these tasks from the comments; edit them before the rework starts.
+
+- [x] Conflicts again, now only in .dmx/productContext.md: #14 (IAM) and #12 (WACM) merged after your rebase. Please rebase on the latest main and keep both sides' content in .dmx/productContext.md (main's…
+  - Conflicts again, now only in .dmx/productContext.md: #14 (IAM) and #12 (WACM) merged after your rebase. Please rebase on the latest main and keep both sides' content in .dmx/productContext.md (main's plus this ticket's learnings), with no duplicated bullets. No code changes are needed. This is the l
+  - …ast open tool PR, so main won't move under you again. Re-run the tests and push.
