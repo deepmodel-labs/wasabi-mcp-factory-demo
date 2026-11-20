@@ -19,6 +19,7 @@
 - Wasabi doesn't document the response shape of `PUT /bucket?manifestCreateAndProcess` (replication backfill). `bucket_replication_backfill` reads a JobId (or Id) from either JSON or XML. Confirm the real shape in the live suite (ticket 24).
 - Wasabi Stats API: query names are `from`, `to` (YYYY-MM-DD), `latest`, `includeRegional`, `pageNum`, `pageSize` (max 100). Responses are `{Records, RecordCount, PageCount}` with the counts only on page 0. Bucket records name the bucket in `Bucket`; `PaddedStorageSizeBytes` is treated as active storage. Confirm in the live suite (ticket 24).
 - For Wasabi-only behaviour on IAM/STS boto3 calls (which respx can't see), use botocore's `Stubber`; respx only for `rest.py` helpers.
+- Wasabi GetBucketTagging on an untagged bucket returns an empty `TagSet` (AWS raises NoSuchTagSet). Stubber validates stubbed responses against the model, so to simulate a missing required field register an `after-call.s3.<Op>` hook that pops it from `parsed`.
 - moto 5.2 IAM gaps: ignores `MaxItems`/`Marker` on ListUsers/ListGroups and `PathPrefix` on ListGroups, never raises `DeleteConflict`, doesn't error on UpdateGroup for a missing group, and reports `PasswordResetRequired=false` whatever was sent.
 - botocore already URL-decodes and parses IAM policy documents (its `json_decode_policies` handler), so boto3 returns them as dicts.
 - moto 5.2 deletes a managed policy that's still attached (no `DeleteConflict`), but does raise `DeleteConflict` for DeleteRole with attached policies and `LimitExceeded` on a sixth policy version.

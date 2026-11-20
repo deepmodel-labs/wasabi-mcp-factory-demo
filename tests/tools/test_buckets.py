@@ -1,11 +1,13 @@
 import httpx
 import pytest
 import respx
+from botocore.stub import Stubber
 from mcp.server.mcpserver import MCPServer
 
 from tests.conftest import FAKE
 from tests.helpers import ToolError, call
 from wasabi_mcp.clients import Clients
+from wasabi_mcp.server import build_server
 from wasabi_mcp.tools import DESTRUCTIVE, READ, WRITE, ToolContext, buckets
 
 KINDS = {
@@ -334,6 +336,26 @@ async def test_bucket_versioning_get_missing_bucket_error_format(server):
 async def test_bucket_tagging_get_unconfigured(server, s3):
     s3.create_bucket(Bucket="tags")
     assert await call(server, "bucket_tagging_get", bucket="tags") == {"configured": False}
+
+
+@pytest.mark.parametrize("drop_tag_set", [False, True], ids=["empty-tag-set", "no-tag-set"])
+async def test_bucket_tagging_get_empty_tag_set_is_unconfigured(
+    settings, monkeypatch, drop_tag_set
+):
+    # Wasabi answers GetBucketTagging on an untagged bucket with an empty TagSet, not
+    # NoSuchTagSet; moto only models the AWS error, so stub Wasabi's reply.
+    client = Clients(settings).s3()
+    monkeypatch.setattr(Clients, "s3", lambda self, region=None: client)
+    if drop_tag_set:
+        # Stubber insists on TagSet (a required field), so remove it after parsing.
+        client.meta.events.register(
+            "after-call.s3.GetBucketTagging", lambda parsed, **_: parsed.pop("TagSet", None)
+        )
+    with Stubber(client) as stub:
+        stub.add_response("get_bucket_tagging", {"TagSet": []}, {"Bucket": "tags"})
+        server = build_server(settings)
+        assert await call(server, "bucket_tagging_get", bucket="tags") == {"configured": False}
+        stub.assert_no_pending_responses()
 
 
 async def test_bucket_tagging_set_get_and_delete(server, s3):
