@@ -8,7 +8,17 @@
 - mcp 2.3.0 error handling: a tool exception reaches the client with its message only if it subclasses `mcp.server.mcpserver.exceptions.ToolError`, so `ToolRefused` does. In-process `MCPServer.call_tool` raises `ToolError` (`"Error executing tool <name>: <msg>"`) rather than returning `is_error`; `ToolAnnotations` is in `mcp.types`.
 - mcp 2.3.0 stdio client: `mcp.client.stdio.stdio_client(StdioServerParameters(...))` with `mcp.client.session.ClientSession`. `ThreadedMotoServer(port=0).get_host_and_port()` gives the bound port.
 - respx matches routes in registration order: register path-specific routes before broad `host=` routes.
-- respx can't see boto3 traffic (boto3 sends with urllib3; respx patches httpx). Use botocore's `Stubber` for Wasabi-only behaviour on boto3 calls; respx only for `rest.py` helpers.
+- httpx renders Python `True` query values as `True`; for `rest.stats_get` / `wacm_request` params send booleans as the strings `"true"`/`"false"`.
+- Tool error messages in tests carry the SDK prefix `"Error executing tool <name>: "`, so `pytest.raises(match=...)` patterns must not anchor with `^`.
+- moto rejects bucket names under 3 characters, and returns 200 (not BucketAlreadyOwnedByYou) when re-creating an owned us-east-1 bucket.
+- respx only intercepts httpx; boto3 uses urllib3. Tests of `rest.signed_s3` tools on `rest_server` pass `region` explicitly so no boto3 GetBucketLocation lookup runs.
+- moto ignores explicit grants on PutObjectAcl (only canned ACLs take effect). To test them, register the group on a manually built `MCPServer` with its own `Clients` and capture the request with a botocore `before-call.s3.PutObjectAcl` hook.
+- moto 5.2.5: GetObjectRetention always returns HTTP 500, and PutObjectLockConfiguration with a default rule needs an empty bucket. Check retention through HeadObject (`ObjectLockMode`, `ObjectLockRetainUntilDate`) and stub reads with `botocore.stub.Stubber` on a manually registered server's `clients.s3()`.
+- moto PutBucketLogging needs the target bucket to grant log delivery: create it with `ACL="log-delivery-write"` in tests.
+- moto drops the replication Role, `And` filters and DeleteMarkerReplication status when read back. Check the sent parameters with a botocore `provide-client-params.s3.PutBucketReplication` hook instead.
+- Wasabi doesn't document the response shape of `PUT /bucket?manifestCreateAndProcess` (replication backfill). `bucket_replication_backfill` reads a JobId (or Id) from either JSON or XML. Confirm the real shape in the live suite (ticket 24).
+- Wasabi Stats API: query names are `from`, `to` (YYYY-MM-DD), `latest`, `includeRegional`, `pageNum`, `pageSize` (max 100). Responses are `{Records, RecordCount, PageCount}` with the counts only on page 0. Bucket records name the bucket in `Bucket`; `PaddedStorageSizeBytes` is treated as active storage. Confirm in the live suite (ticket 24).
+- For Wasabi-only behaviour on IAM/STS boto3 calls (which respx can't see), use botocore's `Stubber`; respx only for `rest.py` helpers.
 - moto 5.2 IAM gaps: ignores `MaxItems`/`Marker` on ListUsers/ListGroups and `PathPrefix` on ListGroups, never raises `DeleteConflict`, doesn't error on UpdateGroup for a missing group, and reports `PasswordResetRequired=false` whatever was sent.
 - botocore already URL-decodes and parses IAM policy documents (its `json_decode_policies` handler), so boto3 returns them as dicts.
 - moto 5.2 deletes a managed policy that's still attached (no `DeleteConflict`), but does raise `DeleteConflict` for DeleteRole with attached policies and `LimitExceeded` on a sixth policy version.
