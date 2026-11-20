@@ -1,0 +1,16 @@
+{
+  "commit": "fa90484deb675021d8e81fa5fb3c08057c763ec8",
+  "scope_items": [
+    {"item": "bucket_tagging_get returns {\"configured\": false} when the response's TagSet is missing or empty, as well as on NoSuchTagSet", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/buckets.py:248-251"},
+    {"item": "Keep {\"configured\": true, \"bucket\": ..., \"tags\": {...}} when at least one tag exists", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/buckets.py:252; tests/tools/test_buckets.py::test_bucket_tagging_set_get_and_delete (unchanged, passing)"},
+    {"item": "Regression test where GetBucketTagging answers like Wasabi (empty TagSet) and the tool returns {\"configured\": false}; existing moto tests keep passing", "verdict": "covered", "evidence": "tests/tools/test_buckets.py:341-358 (Stubber, empty-tag-set and no-tag-set cases); full suite 1255 passed"},
+    {"item": "Live test test_bucket_create_versioning_tagging_delete stays live-marked, asserts {\"configured\": False} after delete, skips without WASABI_LIVE=1", "verdict": "covered", "evidence": "tests/live/test_buckets_objects.py:10 (pytestmark = pytest.mark.live), :28 (assertion); deselected by default addopts"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Response with no TagSet key at all", "addressed": true, "evidence": "src/wasabi_mcp/tools/buckets.py:249 (response.get(\"TagSet\") or []); tests/tools/test_buckets.py:341 no-tag-set case"},
+    {"description": "TagSet present but null/None", "addressed": true, "evidence": "src/wasabi_mcp/tools/buckets.py:249 (`or []` guards None)"},
+    {"description": "AWS-style NoSuchTagSet error still maps to unconfigured", "addressed": true, "evidence": "tests/tools/test_buckets.py::test_bucket_tagging_get_unconfigured (unchanged, passing)"}
+  ]
+}

@@ -245,7 +245,10 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
             raise explain(exc, "GetBucketTagging") from exc
         except BotoCoreError as exc:
             raise explain(exc, "GetBucketTagging") from exc
-        tags = {tag["Key"]: tag["Value"] for tag in response.get("TagSet", [])}
+        # Wasabi answers an untagged bucket with an empty TagSet where AWS raises NoSuchTagSet.
+        tags = {tag["Key"]: tag["Value"] for tag in response.get("TagSet") or []}
+        if not tags:
+            return {"configured": False}
         return {"configured": True, "bucket": bucket, "tags": tags}
 
     @server.tool(name="bucket_tagging_set", annotations=WRITE)
