@@ -14,3 +14,4 @@
 - PR #13 updated after rework round 1 for: Add S3 object and presigned-URL tool groups. It merges cleanly into main (now including #14).
 - release loop completed (outcome: success) (job `gh-7`).
 - Rework round 2: merged latest origin/main (IAM #14, WACM #12; merge, not rebase, to avoid rewriting pushed history), kept both sides in productContext.md; 743 tests pass.
+- Committed dev loop state after rework round 2 (merge of latest origin/main).
