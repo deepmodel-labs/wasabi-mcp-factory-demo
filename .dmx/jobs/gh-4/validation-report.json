@@ -1,0 +1,33 @@
+{
+  "commit": "603f77b595365e6a32b97aba37d6f6e5c6f0e78b",
+  "scope_items": [
+    {"item": "Scenario S3 runs end to end against moto: policy create, group create, user create, add to group, attach, access key create; the secret key appears only in the confirmed iam_access_key_create response", "verdict": "covered", "evidence": "tests/tools/test_iam_scenarios.py:12"},
+    {"item": "iam_access_key_create and STS credential-issuing tools refuse without confirm=true, and no other tool's output contains a SecretAccessKey or the configured credentials", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_keys.py:59, src/wasabi_mcp/tools/iam_roles.py:213, src/wasabi_mcp/tools/iam_roles.py:242, tests/tools/test_iam_scenarios.py:66, tests/tools/iam_support.py"},
+    {"item": "Scenario S8 tools (iam_group_remove_user, iam_policy_detach, iam_access_key_update/delete) refuse in read-only mode, and destructive ones require confirm=true", "verdict": "covered", "evidence": "tests/tools/test_iam_scenarios.py:122, tests/tools/test_iam_scenarios.py:130"},
+    {"item": "respx tests confirm ValidatePolicy and GetUserMFA are sent as signed form POSTs with Version=2010-05-08, and the parsed XML comes back as JSON", "verdict": "covered", "evidence": "tests/tools/test_iam_policy_bindings.py:324, tests/tools/test_iam_account.py:312"},
+    {"item": "Every IAM/STS tool in PRD section 6 has a passing unit test", "verdict": "covered", "evidence": "tests/tools/test_iam_*.py (all 60 tool names referenced; 292 tests pass)"},
+    {"item": "Shared private helper src/wasabi_mcp/tools/_iam.py", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/_iam.py:1"},
+    {"item": "iam_users.py (9 tools)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_users.py:135"},
+    {"item": "iam_keys.py (5 tools)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_keys.py:28"},
+    {"item": "iam_groups.py (8 tools)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_groups.py:60"},
+    {"item": "iam_roles.py (8 tools incl. STS)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_roles.py:98"},
+    {"item": "iam_policies.py (10 tools)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_policies.py:100"},
+    {"item": "iam_policy_bindings.py (8 tools incl. ValidatePolicy via rest.iam_query)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_policy_bindings.py:190"},
+    {"item": "iam_account.py (12 tools incl. GetUserMFA via rest.iam_query)", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_account.py:211"},
+    {"item": "Tests per module plus S3/S8 scenario test", "verdict": "covered", "evidence": "tests/tools/test_iam_scenarios.py:1"},
+    {"item": "docs/tools/<module>.md for each module", "verdict": "covered", "evidence": "docs/tools/iam_users.md, docs/tools/iam_keys.md, docs/tools/iam_groups.md, docs/tools/iam_roles.md, docs/tools/iam_policies.md, docs/tools/iam_policy_bindings.md, docs/tools/iam_account.md"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Invalid policy JSON is refused before any network call", "addressed": true, "evidence": "src/wasabi_mcp/tools/_iam.py:133"},
+    {"description": "max_items clamped to 1..1,000", "addressed": true, "evidence": "src/wasabi_mcp/tools/_iam.py:99"},
+    {"description": "STS duration_seconds outside 900..43,200 refused before the call", "addressed": true, "evidence": "src/wasabi_mcp/tools/iam_roles.py:35"},
+    {"description": "mfa_serial given without mfa_code (or the reverse) is refused", "addressed": true, "evidence": "src/wasabi_mcp/tools/iam_roles.py:244"},
+    {"description": "user_name and all_users both given on iam_access_key_list is refused", "addressed": true, "evidence": "src/wasabi_mcp/tools/iam_keys.py:42"},
+    {"description": "Virtual MFA seeds and QR codes stripped from list and GetUserMFA outputs", "addressed": true, "evidence": "src/wasabi_mcp/tools/iam_account.py:40"},
+    {"description": "Missing login profile vs missing user told apart by matching 'login profile' in the NoSuchEntity message; a different Wasabi message wording would surface an error instead of {configured: false}", "addressed": true, "evidence": "src/wasabi_mcp/tools/iam_users.py:130"},
+    {"description": "iam_mfa_device_list silently ignores assignment_status when user_name is given", "addressed": true, "evidence": "src/wasabi_mcp/tools/iam_account.py:200"},
+    {"description": "The root AssumeRole hint is appended to every AccessDenied from AssumeRole, not only root calls", "addressed": true, "evidence": "src/wasabi_mcp/tools/iam_roles.py:32"}
+  ]
+}
