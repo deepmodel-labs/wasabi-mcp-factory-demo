@@ -21,6 +21,7 @@ It's also a reference build for the DeepModel software factory. The repo, its is
 - `object_append` to a key that doesn't exist creates the object with the text and returns `created: true` (`false` on a normal append) (GH-30). Only `NoSuchKey` triggers the create; Wasabi has no conditional create, so a concurrent writer can race with it (accepted).
 - The streamable-HTTP transport stays on loopback unless the operator opts in (GH-19). A non-loopback `--host` needs `--allow-remote` and a `WASABI_MCP_HTTP_TOKEN` bearer token that every request must send (401 otherwise); `Host` headers are always checked against the bound host, loopback, `--allowed-host` and `WASABI_MCP_ALLOWED_HOSTS`. This broke earlier unauthenticated non-loopback setups.
 - An unexpected exception in any tool reaches the client only as `<tool> failed: unexpected internal error (details are in the server log)`; the traceback goes to stderr with credentials and tokens redacted (GH-36). Deliberate errors (validation, read-only, `confirm=true`, Wasabi ClientError and transport messages) are unchanged.
+- In read-only mode `presign_get` and `presign_get_for_prefix` cap `expires_seconds` at 3,600 instead of refusing longer values (GH-38). The result reports the effective `expires_seconds`/`expires_at` and a `note` only when the cap applied. Writable servers keep the 60–604,800 range.
 
 ## Who uses it
 - Developers and operators who want an agent to work with their Wasabi account.

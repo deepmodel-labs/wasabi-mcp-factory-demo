@@ -14,6 +14,7 @@ from typing import Any
 from botocore.exceptions import BotoCoreError, ClientError
 from mcp.server.mcpserver import MCPServer
 
+from wasabi_mcp.config import Settings
 from wasabi_mcp.errors import explain
 from wasabi_mcp.safety import ToolRefused, require_confirmed, require_writable
 from wasabi_mcp.tools import DESTRUCTIVE, READ, WRITE, ToolContext, clean
@@ -23,6 +24,8 @@ DEFAULT_EXPIRES = 3_600
 MIN_EXPIRES = 60
 # Wasabi's maximum lifetime for URLs signed with IAM user keys (7 days).
 MAX_EXPIRES = 604_800
+# Read-only servers sign download links for at most an hour, so they cannot leak data for days.
+READ_ONLY_MAX_EXPIRES = 3_600
 # ListObjectsV2 page size for presign_get_for_prefix; tests lower it to force paging.
 _LIST_PAGE_SIZE = 1_000
 MAX_PARTS = 10_000
@@ -35,6 +38,17 @@ def _check_expires(expires_seconds: int) -> int:
             f"got {expires_seconds}."
         )
     return expires_seconds
+
+
+def _effective_expires(settings: Settings, expires_seconds: int) -> tuple[int, str | None]:
+    """The lifetime to sign with and, when read-only mode shortened it, a note saying so."""
+    _check_expires(expires_seconds)
+    if not settings.read_only or expires_seconds <= READ_ONLY_MAX_EXPIRES:
+        return expires_seconds, None
+    return READ_ONLY_MAX_EXPIRES, (
+        f"Read-only mode capped expires_seconds at {READ_ONLY_MAX_EXPIRES} "
+        f"(requested {expires_seconds})."
+    )
 
 
 def _expires_at(expires_seconds: int) -> str:
@@ -98,21 +112,25 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
         region: str | None = None,
     ) -> dict[str, Any]:
         """A presigned URL that downloads an object without credentials, valid for
-        expires_seconds (60 to 604,800; default 3,600). Use it for large or binary
-        objects."""
-        _check_expires(expires_seconds)
+        expires_seconds (60 to 604,800; default 3,600). In read-only mode a longer
+        expiry is capped at 3,600 and the result has a note saying so. Use it for
+        large or binary objects."""
+        expires, note = _effective_expires(settings, expires_seconds)
         params = {"Bucket": bucket, "Key": key}
         if version_id:
             params["VersionId"] = version_id
-        url = _presign(_s3(ctx, bucket, region), "get_object", params, expires_seconds)
-        return {
+        url = _presign(_s3(ctx, bucket, region), "get_object", params, expires)
+        result = {
             "bucket": bucket,
             "key": key,
             "method": "GET",
             "url": url,
-            "expires_seconds": expires_seconds,
-            "expires_at": _expires_at(expires_seconds),
+            "expires_seconds": expires,
+            "expires_at": _expires_at(expires),
         }
+        if note:
+            result["note"] = note
+        return result
 
     @server.tool(name="presign_put", annotations=WRITE)
     def presign_put(
@@ -155,8 +173,10 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
     ) -> dict[str, Any]:
         """Presigned download URLs for every object under prefix whose key ends with
         suffix (for example .mp4), at most max_items (default 100, at most 1,000) per
-        call. Each item has key, size and url; pass next_token for more."""
-        _check_expires(expires_seconds)
+        call. Each item has key, size and url; pass next_token for more. In read-only
+        mode an expires_seconds over 3,600 is capped at 3,600 for every URL, with a
+        note saying so."""
+        expires, note = _effective_expires(settings, expires_seconds)
         _check_max_items(max_items)
         client = _s3(ctx, bucket, region)
         # The token is the last key looked at, so each page (and the next call) starts
@@ -179,9 +199,7 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
                 exhausted = index == len(contents) - 1 and not response.get("IsTruncated")
                 if suffix and not last_key.endswith(suffix):
                     continue
-                url = _presign(
-                    client, "get_object", {"Bucket": bucket, "Key": last_key}, expires_seconds
-                )
+                url = _presign(client, "get_object", {"Bucket": bucket, "Key": last_key}, expires)
                 size = entry.get("Size")
                 items.append(
                     {"key": last_key, "size": size, "size_human": _size_human(size), "url": url}
@@ -189,15 +207,16 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
                 if len(items) >= max_items:
                     break
         truncated = not exhausted
-        return clean(
-            {
-                "items": items,
-                "next_token": last_key if truncated else None,
-                "truncated": truncated,
-                "expires_seconds": expires_seconds,
-                "expires_at": _expires_at(expires_seconds),
-            }
-        )
+        result = {
+            "items": items,
+            "next_token": last_key if truncated else None,
+            "truncated": truncated,
+            "expires_seconds": expires,
+            "expires_at": _expires_at(expires),
+        }
+        if note:
+            result["note"] = note
+        return clean(result)
 
     @server.tool(name="multipart_upload_list", annotations=READ)
     def multipart_upload_list(

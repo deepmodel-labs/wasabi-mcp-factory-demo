@@ -1,4 +1,5 @@
 import urllib.request
+from datetime import UTC, datetime
 from urllib.parse import parse_qs, urlparse
 
 import boto3
@@ -158,6 +159,70 @@ async def test_expires_seconds_out_of_range_is_refused(server, s3, name, expires
 async def test_expires_seconds_bounds_are_allowed(server, s3, expires):
     result = await call(server, "presign_get", bucket=BUCKET, key="k", expires_seconds=expires)
     assert result["expires_seconds"] == expires
+
+
+def _assert_expires_about(result, seconds):
+    expires_at = datetime.fromisoformat(result["expires_at"])
+    remaining = (expires_at - datetime.now(UTC)).total_seconds()
+    assert seconds - 30 <= remaining <= seconds
+
+
+async def test_read_only_presign_get_caps_expiry_at_an_hour(read_only_server, s3):
+    s3.put_object(Bucket=BUCKET, Key="k", Body=b"x")
+    result = await call(
+        read_only_server, "presign_get", bucket=BUCKET, key="k", expires_seconds=604_800
+    )
+    assert parse_qs(urlparse(result["url"]).query)["X-Amz-Expires"] == ["3600"]
+    assert result["expires_seconds"] == 3_600
+    _assert_expires_about(result, 3_600)
+    assert "Read-only mode capped" in result["note"]
+    assert "604800" in result["note"]
+    assert _fetch(result["url"]) == b"x"
+
+
+async def test_read_only_presign_get_for_prefix_caps_every_url(read_only_server, s3):
+    for key in ("media/a.mp4", "media/b.mp4", "media/c.mp4"):
+        s3.put_object(Bucket=BUCKET, Key=key, Body=b"x")
+    result = await call(
+        read_only_server,
+        "presign_get_for_prefix",
+        bucket=BUCKET,
+        prefix="media/",
+        expires_seconds=604_800,
+    )
+    assert len(result["items"]) == 3
+    for item in result["items"]:
+        assert parse_qs(urlparse(item["url"]).query)["X-Amz-Expires"] == ["3600"]
+    assert result["expires_seconds"] == 3_600
+    _assert_expires_about(result, 3_600)
+    assert "Read-only mode capped" in result["note"]
+
+
+@pytest.mark.parametrize("expires", [60, 1_800, 3_600])
+@pytest.mark.parametrize("name", ["presign_get", "presign_get_for_prefix"])
+async def test_read_only_expiry_at_or_under_an_hour_is_honored(read_only_server, s3, name, expires):
+    s3.put_object(Bucket=BUCKET, Key="media/a.mp4", Body=b"x")
+    arguments = {"prefix": "media/"} if name == "presign_get_for_prefix" else {"key": "k"}
+    result = await call(read_only_server, name, bucket=BUCKET, expires_seconds=expires, **arguments)
+    url = result["items"][0]["url"] if name == "presign_get_for_prefix" else result["url"]
+    assert parse_qs(urlparse(url).query)["X-Amz-Expires"] == [str(expires)]
+    assert result["expires_seconds"] == expires
+    assert "note" not in result
+
+
+@pytest.mark.parametrize("name", ["presign_get", "presign_get_for_prefix"])
+async def test_read_only_still_refuses_out_of_range_expiry(read_only_server, s3, name):
+    arguments = {"prefix": "media/"} if name == "presign_get_for_prefix" else {"key": "k"}
+    with pytest.raises(ToolError, match="expires_seconds"):
+        await call(read_only_server, name, bucket=BUCKET, expires_seconds=604_801, **arguments)
+
+
+async def test_writable_presign_get_keeps_seven_day_expiry(server, s3):
+    result = await call(server, "presign_get", bucket=BUCKET, key="k", expires_seconds=604_800)
+    assert parse_qs(urlparse(result["url"]).query)["X-Amz-Expires"] == ["604800"]
+    assert result["expires_seconds"] == 604_800
+    _assert_expires_about(result, 604_800)
+    assert "note" not in result
 
 
 async def test_presigned_urls_use_the_endpoint_for_the_given_region():
