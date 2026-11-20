@@ -95,7 +95,7 @@ The repository starts with only this PRD, the README, the licence and the dmx se
   - `ToolRefused(Exception)`, whose message is what the client sees;
   - `require_writable(settings, action)`, which refuses in read-only mode and tells the user how to enable writes;
   - `require_confirmed(settings, action, confirm)`, which applies `require_writable` and then refuses unless `confirm` is true.
-- **`errors.py`:** `explain(exc, action) -> ToolRefused` turns botocore `ClientError` and `BotoCoreError` into `"<action> failed: <Code>: <Message>"`.
+- **`errors.py`:** `explain(exc, action) -> ToolRefused` turns botocore `ClientError` and `BotoCoreError` into `"<action> failed: <Code>: <Message>"`. `guard(fn, tool, settings)` wraps every tool (applied once in `build_server`): any exception other than `ToolError`, `ResourceError` or `MCPError` reaches the client only as `"<tool> failed: unexpected internal error (details are in the server log)"`, and its traceback is logged to stderr with credentials and tokens redacted (`redact`).
 - **`rest.py`:** requests boto3 can't make. Each raises `ToolRefused` with the service's error code and message on a non-2xx response, and with a clear message when credentials are missing.
   - `signed_s3(settings, method, bucket, key="", *, query, headers, body, region, action) -> httpx.Response`:
     - path-style and SigV4-signed for `s3`, with `x-amz-content-sha256: UNSIGNED-PAYLOAD`;
@@ -193,6 +193,7 @@ Every tool is one of three kinds, marked **R**, **W** or **D** in the catalogue.
 
 - Catch `ClientError` and `BotoCoreError` and raise `explain(exc, "<Action>")`. `rest.py` helpers already raise `ToolRefused`.
 - Errors say what failed and why, using Wasabi's code and message (for example `ComplianceSettingsLocked`, `NoSuchBucketPolicy`). Add a fix where one is obvious.
+- An unexpected exception never reaches the client with its own text: the boundary `guard` returns a short message naming the tool and logs the redacted traceback.
 - "Not found" on a read of optional configuration (no policy, no lifecycle, no CORS, no tagging) returns `{"configured": false}`, not an error.
 
 ### 5.6 Tests
