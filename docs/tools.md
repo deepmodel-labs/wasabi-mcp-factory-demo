@@ -169,7 +169,7 @@ Details: [`docs/tools/iam_users.md`](tools/iam_users.md).
 | `iam_user_update` | W | Rename an IAM user and/or change their path. Returns the user's new name. |
 | `iam_user_delete` | D | Delete an IAM user; needs `confirm=true`. With `cascade=true` it first removes the user's keys, login profile, group memberships, policies and MFA devices, and lists each step. |
 | `iam_login_profile_get` | R | Show whether an IAM user has a console password (login profile), with its created date and reset flag. Returns `{"configured": false}` when there is none. |
-| `iam_login_profile_create` | D | Give an IAM user a console password; needs `confirm=true`. A strong password is generated when none is given, and returned once as `password`. |
+| `iam_login_profile_create` | D | Give an IAM user a console password; needs `confirm=true`. A strong password is generated when none is given, and returned once as `password`. With `WASABI_MCP_SECRETS_DIR` set, the password goes to a new 0600 file instead and `secrets_file` gives its path. |
 | `iam_login_profile_update` | D | Change an IAM user's console password and/or whether they must reset it at next sign-in; needs `confirm=true`. Never returns the password. |
 | `iam_login_profile_delete` | D | Remove an IAM user's console password so they can't sign in to the console; needs `confirm=true`. Access keys keep working. |
 
@@ -180,7 +180,7 @@ Details: [`docs/tools/iam_keys.md`](tools/iam_keys.md).
 | Name | Kind | Description |
 |---|---|---|
 | `iam_access_key_list` | R | List access keys for a user (default: the caller), or for every user with `all_users=true` (root's keys show a blank user name). Returns key IDs, status and created dates, never secrets. |
-| `iam_access_key_create` | D | Create an access key for a user (default: the caller); needs `confirm=true`. Returns `access_key_id` and `secret_access_key` once: the secret can't be retrieved again. Users can have at most two keys. |
+| `iam_access_key_create` | D | Create an access key for a user (default: the caller); needs `confirm=true`. Returns `access_key_id` and `secret_access_key` once: the secret can't be retrieved again. With `WASABI_MCP_SECRETS_DIR` set, the secret goes to a new 0600 file instead and `secrets_file` gives its path. Users can have at most two keys. |
 | `iam_access_key_update` | D | Activate (`active=true`) or deactivate (`active=false`) an access key; needs `confirm=true`. A deactivated key stops working at once but can be reactivated. |
 | `iam_access_key_delete` | D | Delete an access key permanently; needs `confirm=true`. Anything still using the key stops working. |
 | `iam_access_key_last_used` | R | Show when an access key was last used, and for which service and region. Returns the key's user name and last-used details. |
@@ -212,8 +212,8 @@ Details: [`docs/tools/iam_roles.md`](tools/iam_roles.md).
 | `iam_role_delete` | D | Delete an IAM role; needs `confirm=true`. With `cascade=true` it first detaches and deletes the role's policies, and lists each step. |
 | `iam_role_trust_policy_update` | D | Replace an IAM role's trust policy (dict or JSON), changing who may assume it; needs `confirm=true`. |
 | `sts_caller_identity` | R | Show who this server is signed in as: the account ID, user ID and ARN. Never returns keys. |
-| `sts_assume_role` | D | Assume an IAM role and get temporary credentials; needs `confirm=true`. duration_seconds is 900 to 43,200, and an optional inline policy narrows access. The credentials are returned once. Wasabi doesn't let the root account assume roles. |
-| `sts_session_token` | D | Get temporary session credentials for the caller, optionally MFA-authenticated with mfa_serial and mfa_code; needs `confirm=true`. duration_seconds is 900 to 43,200. The credentials are returned once. |
+| `sts_assume_role` | D | Assume an IAM role and get temporary credentials; needs `confirm=true`. duration_seconds is 900 to 43,200, and an optional inline policy narrows access. The credentials are returned once; with `WASABI_MCP_SECRETS_DIR` set, they go to a new 0600 file instead and `secrets_file` gives its path. Wasabi doesn't let the root account assume roles. |
+| `sts_session_token` | D | Get temporary session credentials for the caller, optionally MFA-authenticated with mfa_serial and mfa_code; needs `confirm=true`. duration_seconds is 900 to 43,200. The credentials are returned once; with `WASABI_MCP_SECRETS_DIR` set, they go to a new 0600 file instead and `secrets_file` gives its path. |
 
 ### IAM managed policies (`iam_policies`)
 
@@ -263,7 +263,7 @@ Details: [`docs/tools/iam_account.md`](tools/iam_account.md).
 | `iam_account_alias_delete` | D | Remove the account's alias, changing the console sign-in URL; needs `confirm=true`. |
 | `iam_mfa_device_list` | R | List a user's MFA devices when user_name is given; otherwise list the account's virtual MFA devices, filtered by assignment_status (Assigned, Unassigned or Any). Returns serial numbers, users and enable dates, never seeds or QR codes. |
 | `iam_user_mfa_get` | R | Show a user's (default: the caller's) MFA status with Wasabi's GetUserMFA: device details, plus the authentication date and age of the current credentials. |
-| `iam_mfa_virtual_device_create` | D | Create a virtual (TOTP) MFA device, the only kind Wasabi supports; needs `confirm=true`. Returns the Base32 seed and a QR code PNG (base64) once, for the user to enrol in an authenticator app. |
+| `iam_mfa_virtual_device_create` | D | Create a virtual (TOTP) MFA device, the only kind Wasabi supports; needs `confirm=true`. Returns the Base32 seed and a QR code PNG (base64) once, for the user to enrol in an authenticator app. With `WASABI_MCP_SECRETS_DIR` set, both go to one new 0600 JSON file instead and only `serial_number` and `secrets_file` are returned. |
 | `iam_mfa_device_deactivate` | D | Deactivate a user's MFA device, and with delete=true also delete the virtual device; needs `confirm=true`. The user can then sign in without MFA. |
 
 ## Usage
@@ -320,7 +320,7 @@ Details: [`docs/tools/wacm_sub_accounts.md`](tools/wacm_sub_accounts.md).
 |---|---|---|---|
 | `wacm_sub_account_list` | R | `page`?, `size`?, `id`?, `name`?, `control_account_id`?, `governance_account_id`?, `status`?, `include_deleted`? | List WACM Connect sub-accounts with their quota settings (purchasedStorageTB, storageQuotaType), optionally filtered. Returns one page (pages start at 0); keys are never requested or returned. |
 | `wacm_sub_account_get` | R | `sub_account_id` | Get one WACM Connect sub-account by ID, including its quota settings. Its keys are never returned. |
-| `wacm_sub_account_create` | D | `name`, `wasabi_account_email`, `password`?, `send_welcome_email`?, `control_account_id`?, `channel_account_id`?, `is_trial`?, `trial_quota_tb`?, `trial_days`?, `purchased_storage_tb`?, `storage_quota_type`?, `confirm`? | Create a WACM Connect sub-account (a new Wasabi account) with an optional Soft or Hard storage quota; Hard needs purchased_storage_tb. Give a password or send_welcome_email=true. Returns the account and its new access_key_id and secret_access_key, shown only this once. Needs confirm=true. |
+| `wacm_sub_account_create` | D | `name`, `wasabi_account_email`, `password`?, `send_welcome_email`?, `control_account_id`?, `channel_account_id`?, `is_trial`?, `trial_quota_tb`?, `trial_days`?, `purchased_storage_tb`?, `storage_quota_type`?, `confirm`? | Create a WACM Connect sub-account (a new Wasabi account) with an optional Soft or Hard storage quota; Hard needs purchased_storage_tb. Give a password or send_welcome_email=true. Returns the account and its new access_key_id and secret_access_key, shown only this once; with WASABI_MCP_SECRETS_DIR set, the keys go to a new 0600 file instead and `secrets_file` gives its path. Needs confirm=true. |
 | `wacm_sub_account_update` | D | `sub_account_id`, `active`?, `trial_to_paid`?, `purchased_storage_tb`?, `storage_quota_type`?, `reset_keys`?, `reset_mfa`?, `confirm`? | Partly update a WACM Connect sub-account: enable or disable it (active), convert a trial to paid, change its quota, reset its keys (new keys aren't returned) or reset its MFA. Only the fields given are sent. Needs confirm=true. |
 | `wacm_sub_account_delete` | D | `sub_account_id`, `confirm`? | Delete a WACM Connect sub-account and the Wasabi account behind it. Needs confirm=true. |
 | `wacm_sub_account_bucket_list` | R | `sub_account_id`, `page`?, `size`?, `from_date`?, `to_date`?, `latest`?, `name`?, `bucket_number`?, `region`? | List a sub-account's buckets with their usage, optionally filtered by from_date/to_date (YYYY-MM-DD), latest, name, bucket number or region. Returns one page (pages start at 0). |
@@ -356,4 +356,4 @@ Details: [`docs/tools/meta.md`](tools/meta.md).
 
 | Tool | Kind | Description |
 |---|---|---|
-| `server_info` | R | The server's version, default region, read-only flag, endpoints, whether Wasabi keys and WACM Connect are configured, and the loaded tool groups. Never returns credentials. |
+| `server_info` | R | The server's version, default region, read-only flag, endpoints, whether Wasabi keys and WACM Connect are configured, whether new secrets are written to `WASABI_MCP_SECRETS_DIR` (`secrets_dir_enabled`), and the loaded tool groups. Never returns credentials or the secrets directory path. |

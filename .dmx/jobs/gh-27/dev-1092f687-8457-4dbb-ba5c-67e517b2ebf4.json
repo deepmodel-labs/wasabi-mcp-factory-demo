@@ -12,14 +12,14 @@
     "implement-next-phase"
   ],
   "skill_outputs": {
-    "implement-next-phase": "Phase 2 (Wire the Six Tools) done; all 6 tasks checked off in tasks.md.\n- iam_access_key_create, iam_login_profile_create, iam_mfa_virtual_device_create, sts_assume_role, sts_session_token and wacm_sub_account_create now call _secrets.prepare() after guards/validation and before the Wasabi call.\n- When the setting is on, each writes its secret to a 0600 file and returns secrets_file plus the non-secret identifiers. The MFA file holds base32_string_seed plus base64 qr_code_png, and the tool returns only serial_number and the path. STS returns credentials {access_key_id, expiration, secrets_file} via a new iam_roles.saved_credentials.\n- Unset mode returns the same result as before. Docstrings mention the new mode. _secrets.SAVED_NOTE replaces the \"shown once\" note.\n- New tests/tools/secrets_support.py. Per-tool tests check: file 0600 holding the secret, no secret value in the result text, unset result shape unchanged, 0755 or unwritable dir refused with no backend call, two calls give two files, a failed write names the created key.\n- ruff check, ruff format --check and the full pytest suite pass (1315 passed). Not committed yet.",
-    "commit": "Committed c14aaef on feature-gh-27-add-optional-wasabi-mcp-secrets-dir-to: \"feat: add WASABI_MCP_SECRETS_DIR setting and secrets file helper\" (Closes #27).\nStaged only the project files: src, tests, .dmx/systemPatterns.md and the .dmx/jobs/gh-27 ticket files. Untracked environment dotfiles (.bashrc, .idea, .mcp.json, scripts, etc.) were left out.\nMemory bank: added a \"Secrets directory\" pattern to systemPatterns.md, cleared the branch-specific Open Learnings and added a Phase 1 session note.\nNo AI attribution trailer. Not pushed."
+    "implement-next-phase": "Phase 3 (Documentation) done; all 4 tasks checked off, so every phase in tasks.md is now complete.\n- README: WASABI_MCP_SECRETS_DIR added to the Configuration table.\n- README: new \"New secrets\" subsection covering unset vs set mode, file mode 0600, random names and no overwrite, the dir rules (create 0700; refuse group/world-accessible with a chmod 700 hint; refuse non-dir or unwritable; all before the Wasabi call) and the failure-after-create error naming the resource.\n- README: Safety bullet and server_info description updated.\n- docs/prd.md section 7: new WASABI_MCP_SECRETS_DIR row; the variable count in tests/test_docs.py raised from 11 to 12.\n- docs/tools: iam_keys, iam_users, iam_account, iam_roles, wacm_sub_accounts and meta updated; docs/tools.md regenerated with `uv run python -m tests.docs_tools`.\n- ruff check, ruff format --check and the full pytest suite pass (1315 passed). Not committed yet.",
+    "commit": "Committed dd81b83: \"feat: write new secrets to WASABI_MCP_SECRETS_DIR in the six credential tools\" (Closes #27).\nStaged src, tests, .dmx/systemPatterns.md and the .dmx/jobs/gh-27 ticket files (16 files). Untracked environment dotfiles left out.\nMemory bank: moved the Phase 2 learnings (result shape in secrets mode, saved_credentials, test helper and how refusal tests prove no API call) into the systemPatterns.md \"Secrets directory\" entry. Cleared Open Learnings and added a session note.\nNo AI attribution trailer. Not pushed."
   },
   "validator_results": [],
   "outcome": "success",
-  "iteration_count": 1,
+  "iteration_count": 2,
   "timestamp": "2026-11-20T07:51:42.781058+00:00",
-  "updated_at": "2026-11-20T08:18:36.811503+00:00",
+  "updated_at": "2026-11-20T08:27:36.886668+00:00",
   "validation_started_at": null,
   "finish_message": null
 }

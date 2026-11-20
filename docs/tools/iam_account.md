@@ -12,5 +12,5 @@
 | `iam_account_alias_delete` | D | Remove the account's alias, changing the console sign-in URL; needs `confirm=true`. |
 | `iam_mfa_device_list` | R | List a user's MFA devices when user_name is given; otherwise list the account's virtual MFA devices, filtered by assignment_status (Assigned, Unassigned or Any). Returns serial numbers, users and enable dates, never seeds or QR codes. |
 | `iam_user_mfa_get` | R | Show a user's (default: the caller's) MFA status with Wasabi's GetUserMFA: device details, plus the authentication date and age of the current credentials. |
-| `iam_mfa_virtual_device_create` | D | Create a virtual (TOTP) MFA device, the only kind Wasabi supports; needs `confirm=true`. Returns the Base32 seed and a QR code PNG (base64) once, for the user to enrol in an authenticator app. |
+| `iam_mfa_virtual_device_create` | D | Create a virtual (TOTP) MFA device, the only kind Wasabi supports; needs `confirm=true`. Returns the Base32 seed and a QR code PNG (base64) once, for the user to enrol in an authenticator app. With `WASABI_MCP_SECRETS_DIR` set, both go to one new 0600 JSON file instead and only `serial_number` and `secrets_file` are returned. |
 | `iam_mfa_device_deactivate` | D | Deactivate a user's MFA device, and with delete=true also delete the virtual device; needs `confirm=true`. The user can then sign in without MFA. |
