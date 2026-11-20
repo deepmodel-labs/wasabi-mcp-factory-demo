@@ -8,6 +8,8 @@
 - mcp 2.3.0 error handling: a tool exception reaches the client with its message only if it subclasses `mcp.server.mcpserver.exceptions.ToolError`, so `ToolRefused` does. In-process `MCPServer.call_tool` raises `ToolError` (`"Error executing tool <name>: <msg>"`) rather than returning `is_error`; `ToolAnnotations` is in `mcp.types`.
 - mcp 2.3.0 stdio client: `mcp.client.stdio.stdio_client(StdioServerParameters(...))` with `mcp.client.session.ClientSession`. `ThreadedMotoServer(port=0).get_host_and_port()` gives the bound port.
 - respx matches routes in registration order: register path-specific routes before broad `host=` routes.
+- respx records a passed-through call twice on its route: on `pass_through()` routes compare call counts before/after rather than asserting an exact count. moto has no `?append`; simulate it with a respx `side_effect` that reads/writes the object through boto3 (which respx doesn't intercept).
+- Wasabi `PUT ?append` on a missing key returns `NoSuchKey`; `ToolRefused.code` (set by `rest.signed_s3`) lets tools branch on the service error code without matching message text.
 - httpx renders Python `True` query values as `True`; for `rest.stats_get` / `wacm_request` params send booleans as the strings `"true"`/`"false"`.
 - Tool error messages in tests carry the SDK prefix `"Error executing tool <name>: "`, so `pytest.raises(match=...)` patterns must not anchor with `^`.
 - moto rejects bucket names under 3 characters, and returns 200 (not BucketAlreadyOwnedByYou) when re-creating an owned us-east-1 bucket.

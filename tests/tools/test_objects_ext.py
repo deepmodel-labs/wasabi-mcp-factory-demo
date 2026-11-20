@@ -32,6 +32,17 @@ def _error(code: str, message: str) -> httpx.Response:
     return httpx.Response(400, content=body.encode(), headers={"Content-Type": "application/xml"})
 
 
+def _no_such_key(key: str) -> httpx.Response:
+    """Wasabi's reply to ``PUT ?append`` on a key that doesn't exist."""
+    body = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        "<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message>"
+        f"<Key>{key}</Key><RequestId>4442587FB7D0A2F9</RequestId>"
+        "<HostId>bQ5CvA5Eg1ZtqzPgWbAYQ9Hp5sy3nZ3k8VlZp1u0e0E=</HostId></Error>"
+    )
+    return httpx.Response(404, content=body.encode(), headers={"Content-Type": "application/xml"})
+
+
 def _assert_signed(request: httpx.Request, region: str = "eu-central-1") -> None:
     authorization = request.headers["authorization"]
     assert authorization.startswith(f"AWS4-HMAC-SHA256 Credential={FAKE_ACCESS_KEY}/")
@@ -51,6 +62,15 @@ async def test_tools_have_catalogue_kinds(rest_server):
     assert tools["object_append"].annotations == WRITE
     assert "hash of the part MD5s" in tools["object_compose"].description
     assert "1,023" in tools["object_append"].description
+
+
+async def test_object_append_description_states_create_on_missing_and_the_race(rest_server):
+    tools = {tool.name: tool for tool in await rest_server.list_tools()}
+    description = tools["object_append"].description
+    assert "If the key doesn't exist, the object is created with the text" in description
+    race = [line for line in description.splitlines() if "concurrent writer" in line]
+    assert len(race) == 1
+    assert "race" in race[0]
 
 
 # object_rename
@@ -422,6 +442,8 @@ async def test_object_append_puts_the_text(rest_server):
     assert result["ok"] is True
     assert result["etag"] == "e1-2"
     assert result["appended_bytes"] == 7
+    assert result["created"] is False
+    assert route.call_count == 1
 
 
 @respx.mock
@@ -474,6 +496,109 @@ async def test_object_append_reports_wasabi_error(rest_server):
     )
     with pytest.raises(ToolError, match="AppendObject failed: TooManyParts: The object has too"):
         await call(rest_server, "object_append", bucket="l", key="k", text="x", region="us-east-1")
+
+
+def _append_and_put_routes(host: str = "s3.wasabi.test") -> tuple[respx.Route, respx.Route]:
+    """The ``?append`` route, registered first so it wins, then the plain PUT route."""
+    append = respx.route(method="PUT", host=host, url__regex=r"\?append$")
+    put = respx.route(method="PUT", host=host)
+    return append, put
+
+
+@respx.mock
+async def test_object_append_creates_a_missing_key(rest_server):
+    append, put = _append_and_put_routes()
+    append.mock(return_value=_no_such_key("app.log"))
+    put.mock(return_value=httpx.Response(200, headers={"ETag": '"new"', "x-amz-version-id": "v1"}))
+    result = await call(
+        rest_server,
+        "object_append",
+        bucket="logs",
+        key="app.log",
+        text="first line\n",
+        content_type="text/csv",
+        region="eu-central-1",
+    )
+    assert append.call_count == 1
+    assert put.call_count == 1
+    request = put.calls.last.request
+    assert str(request.url) == f"{S3}/logs/app.log"
+    assert request.content == b"first line\n"
+    assert request.headers["content-type"] == "text/csv"
+    _assert_signed(request)
+    assert result == {
+        "ok": True,
+        "bucket": "logs",
+        "key": "app.log",
+        "appended_bytes": 11,
+        "etag": "new",
+        "version_id": "v1",
+        "region": "eu-central-1",
+        "created": True,
+    }
+
+
+@respx.mock
+async def test_object_append_access_denied_does_not_create(rest_server):
+    append, put = _append_and_put_routes()
+    body = b"<Error><Code>AccessDenied</Code><Message>Access Denied</Message></Error>"
+    append.mock(return_value=httpx.Response(403, content=body))
+    put.mock(return_value=httpx.Response(200))
+    with pytest.raises(ToolError, match="AppendObject failed: AccessDenied: Access Denied"):
+        await call(rest_server, "object_append", bucket="l", key="k", text="x", region="us-east-1")
+    assert append.call_count == 1
+    assert not put.called
+
+
+@respx.mock
+async def test_object_append_reports_a_failed_create(rest_server):
+    append, put = _append_and_put_routes()
+    append.mock(return_value=_no_such_key("k"))
+    put.mock(return_value=_error("AccessDenied", "Access Denied"))
+    with pytest.raises(ToolError, match="PutObject failed: AccessDenied: Access Denied"):
+        await call(rest_server, "object_append", bucket="l", key="k", text="x", region="us-east-1")
+    assert put.call_count == 1
+
+
+async def test_object_append_round_trip_on_moto(server, moto_url):
+    s3 = boto3.client(
+        "s3",
+        region_name="us-east-1",
+        endpoint_url=moto_url,
+        aws_access_key_id=FAKE_ACCESS_KEY,
+        aws_secret_access_key=FAKE_SECRET_KEY,
+    )
+    s3.create_bucket(Bucket="logs")
+
+    def wasabi_append(request: httpx.Request) -> httpx.Response:
+        # moto has no append extension, so do what Wasabi does: NoSuchKey on a missing key,
+        # else write original + new text. boto3 doesn't go through httpx, so respx skips it.
+        key = request.url.path.removeprefix("/logs/")
+        try:
+            original = s3.get_object(Bucket="logs", Key=key)["Body"].read()
+        except s3.exceptions.NoSuchKey:
+            return _no_such_key(key)
+        s3.put_object(Bucket="logs", Key=key, Body=original + request.content)
+        return httpx.Response(200, headers={"ETag": '"appended"'})
+
+    with respx.mock:
+        append, put = _append_and_put_routes(urlsplit(moto_url).hostname)
+        append.mock(side_effect=wasabi_append)
+        put.pass_through()
+        first = await call(server, "object_append", bucket="logs", key="log.txt", text="one\n")
+        assert first["created"] is True
+        assert put.called
+        assert all(c.request.url.query == b"" for c in put.calls)
+        puts = put.call_count  # respx records a passed-through call twice, so compare counts
+        read = await call(server, "object_get_text", bucket="logs", key="log.txt")
+        assert read["text"] == "one\n"
+
+        second = await call(server, "object_append", bucket="logs", key="log.txt", text="two\n")
+        assert second["created"] is False
+        assert append.call_count == 2
+        assert put.call_count == puts
+    read = await call(server, "object_get_text", bucket="logs", key="log.txt")
+    assert read["text"] == "one\ntwo\n"
 
 
 # Region lookup and secrets
