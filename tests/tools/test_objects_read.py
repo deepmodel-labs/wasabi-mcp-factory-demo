@@ -177,6 +177,11 @@ async def test_object_get_text_missing_key_is_explained(server, s3):
         await call(server, "object_get_text", bucket=BUCKET, key="missing")
 
 
+async def test_object_get_text_missing_bucket_keeps_the_region_lookup_error(server):
+    with pytest.raises(ToolError, match="GetBucketLocation failed: NoSuchBucket"):
+        await call(server, "object_get_text", bucket="no-such-bucket", key="k")
+
+
 class _RawBody(io.BytesIO):
     """Stands in for urllib3's response so botocore can stream the body."""
 

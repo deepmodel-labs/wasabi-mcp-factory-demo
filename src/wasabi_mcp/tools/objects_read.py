@@ -302,8 +302,9 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
         args = {"Bucket": bucket, "Key": key, "Range": f"bytes=0-{max_bytes}"}
         if version_id:
             args["VersionId"] = version_id
+        client = _s3(ctx, bucket, region)
         try:
-            response = _s3(ctx, bucket, region).get_object(**args)
+            response = client.get_object(**args)
             body: bytes = response["Body"].read()
         except ClientError as exc:
             if exc.response.get("Error", {}).get("Code") != "InvalidRange":

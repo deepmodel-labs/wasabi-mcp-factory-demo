@@ -39,6 +39,7 @@
 - The factory runner can't write `.github/` (it's mounted as /dev/null). Changes to `.github/workflows/ci.yml` go to a maintainer: put the exact YAML in the job folder and the PR description.
 - A ranged GetObject on an empty object fails with `InvalidRange`; treat that as an empty body.
 - Wasabi doesn't support AWS flexible checksums: botocore 1.44 validates GetObject response checksums by default and breaks on appended objects. Every client is built from `clients.BASE_CONFIG`, with `response_checksum_validation` and `request_checksum_calculation` set to `when_required`.
+- A catch-all `except Exception` around a boto3 call must not also wrap helpers that raise `ToolRefused` themselves (such as `objects_read._s3`'s region lookup), or their clear errors get replaced.
 - Pushed feature branches are never force-pushed. To bring one up to date with `main` (even when a review asks for a rebase), merge `origin/main` into it.
 - moto 5.2.5 has no GetObjectRetention handler (it returns 500) and doesn't enforce `x-amz-bypass-governance-retention`. Test those paths by patching `Clients._client` to register botocore `before-call` (canned response) or `before-send` (header capture) hooks; respx can't intercept boto3.
 - moto multipart: presigned part PUTs sent with urllib need an explicit non-form `Content-Type` (else Flask parses the body as a form and loses `partNumber`), ListMultipartUploads ignores `MaxUploads`, and CompleteMultipartUpload with an unknown upload id returns 500. Test paging with botocore `before-parameter-build`/`after-call` hooks.
