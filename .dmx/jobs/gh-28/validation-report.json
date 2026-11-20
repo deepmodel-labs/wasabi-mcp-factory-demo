@@ -1,0 +1,26 @@
+{
+  "commit": "3cdd27154c67ba66fc79a5ccfcd858273e57e35b",
+  "scope_items": [
+    {"item": "iam_policy_validate: is_principal=True (default) leaves IsPrincipal out of the request", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_policy_bindings.py:207"},
+    {"item": "iam_policy_validate: is_principal=False sends IsPrincipal=false", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_policy_bindings.py:207"},
+    {"item": "Return validation as today plus evaluation (Allow/Deny as is) when <Evaluation> is present", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_policy_bindings.py:213-217"},
+    {"item": "Docstring, docs/tools/iam_policy_bindings.md and regenerated docs/tools.md describe measured behaviour", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/iam_policy_bindings.py:194-200; docs/tools/iam_policy_bindings.md:12; docs/tools.md:248"},
+    {"item": "rest.iam_query: malformed 2xx body parsed from <{action}Response> element, else ToolRefused naming the action", "verdict": "covered", "evidence": "src/wasabi_mcp/rest.py:172-188"},
+    {"item": "Errors append <Detail> as {Code}: {Message} ({Detail}) in _xml_error and 2xx <Error> branch; unchanged without Detail", "verdict": "covered", "evidence": "src/wasabi_mcp/rest.py:51-56,68,167"},
+    {"item": "Tool tests: default omits IsPrincipal, is_principal=False sends false, set(form) updated", "verdict": "covered", "evidence": "tests/tools/test_iam_policy_bindings.py:376-388,413"},
+    {"item": "Tool tests: malformed 200 without Evaluation, with Allow/Deny, 400 MalformedPolicyDocument with Detail, 400 Missing Principal, unparseable 200", "verdict": "covered", "evidence": "tests/tools/test_iam_policy_bindings.py:455-517"},
+    {"item": "tests/test_rest.py: iam_query fallback and <Detail> in error text", "verdict": "covered", "evidence": "tests/test_rest.py:151-199"},
+    {"item": "Live test: default lint succeeds, evaluated call asserts evaluation == Allow, syntax-error policy raises MalformedPolicyDocument", "verdict": "covered", "evidence": "tests/live/test_iam.py:72-96"},
+    {"item": ".dmx/techContext.md: replace 'still open' ValidatePolicy note with confirmed behaviour", "verdict": "covered", "evidence": ".dmx/techContext.md:29"}
+  ],
+  "scope_creep": [],
+  "regressions": [],
+  "edge_cases": [
+    {"description": "Well-formed IAM bodies (GetUserMFA, existing tests) take the unchanged parse path", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:175-178"},
+    {"description": "2xx body with no <{action}Response> element, empty body, or mismatched tags raises ToolRefused instead of ParseError", "addressed": true, "evidence": "tests/test_rest.py:168-174"},
+    {"description": "Error without <Detail> or with whitespace-only Detail keeps the original message", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:54-56"},
+    {"description": "Empty <Evaluation> element is not added as evaluation", "addressed": true, "evidence": "src/wasabi_mcp/tools/iam_policy_bindings.py:215-216"},
+    {"description": "Explicit is_principal=True behaves like the default (IsPrincipal omitted)", "addressed": true, "evidence": "tests/tools/test_iam_policy_bindings.py:376-381"},
+    {"description": "2xx <Error> inside a malformed body is still raised after fallback parsing", "addressed": true, "evidence": "src/wasabi_mcp/rest.py:164-167"}
+  ]
+}

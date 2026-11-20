@@ -314,7 +314,30 @@ MALFORMED_POLICY = (
     b"<Message>Missing required field Principal</Message></Error>"
     b"<RequestId>r1</RequestId></ErrorResponse>"
 )
+# Live Wasabi's 200 body: stray tags follow </ValidatePolicyResponse>, so it isn't XML.
+STRAY_TAIL = (
+    b"<ResponseMetadata><RequestId>r1</RequestId></ResponseMetadata></CreatePolicyVersionResponse>"
+)
+LIVE_VALID_RESPONSE = (
+    b'<ValidatePolicyResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">'
+    b"<ValidatePolicyResult></ValidatePolicyResult></ValidatePolicyResponse>" + STRAY_TAIL
+)
+MALFORMED_POLICY_DOCUMENT = (
+    b'<ErrorResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">'
+    b"<Error><Type>Sender</Type><Code>MalformedPolicyDocument</Code>"
+    b"<Message>Syntax errors in policy.</Message>"
+    b"<Detail>unexpected end of JSON input</Detail></Error>"
+    b"<RequestId>r1</RequestId></ErrorResponse>"
+)
 OPTIONAL_FIELDS = {"UseAction", "UseResource", "UseService"}
+
+
+def _live_evaluated_response(evaluation: str) -> bytes:
+    return (
+        b'<ValidatePolicyResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">'
+        b"<ValidatePolicyResult><Evaluation>" + evaluation.encode() + b"</Evaluation>"
+        b"</ValidatePolicyResult></ValidatePolicyResponse>" + STRAY_TAIL
+    )
 
 
 def _validate_route(content: bytes = VALIDATE_RESPONSE, status: int = 200) -> respx.Route:
@@ -327,15 +350,10 @@ def _form(route: respx.Route) -> dict[str, list[str]]:
 
 @respx.mock
 @pytest.mark.parametrize("as_string", [False, True])
-@pytest.mark.parametrize(("is_principal", "flag"), [(True, "true"), (False, "false")])
-async def test_policy_validate_encodes_the_request_as_documented(
-    rest_server, is_principal, flag, as_string
-):
+async def test_policy_validate_encodes_the_request_as_documented(rest_server, as_string):
     route = _validate_route()
     document = json.dumps(LIST_BUCKETS_POLICY) if as_string else LIST_BUCKETS_POLICY
-    await call(
-        rest_server, "iam_policy_validate", policy_document=document, is_principal=is_principal
-    )
+    await call(rest_server, "iam_policy_validate", policy_document=document)
     request = route.calls.last.request
     assert request.method == "POST"
     assert request.url.path == "/"
@@ -352,14 +370,22 @@ async def test_policy_validate_encodes_the_request_as_documented(
     [policy] = form["PolicyDocument"]
     assert json.loads(policy) == LIST_BUCKETS_POLICY
     assert policy.startswith("{")
-    assert form["IsPrincipal"] == [flag]
 
 
 @respx.mock
-async def test_policy_validate_defaults_is_principal_to_true(rest_server):
+@pytest.mark.parametrize("explicit", [False, True])
+async def test_policy_validate_omits_is_principal_for_an_identity_policy(rest_server, explicit):
     route = _validate_route()
-    await call(rest_server, "iam_policy_validate", policy_document=LIST_BUCKETS_POLICY)
-    assert _form(route)["IsPrincipal"] == ["true"]
+    extra = {"is_principal": True} if explicit else {}
+    await call(rest_server, "iam_policy_validate", policy_document=LIST_BUCKETS_POLICY, **extra)
+    assert "IsPrincipal" not in _form(route)
+
+
+@respx.mock
+async def test_policy_validate_sends_is_principal_false_for_a_resource_policy(rest_server):
+    route = _validate_route()
+    await call(rest_server, "iam_policy_validate", policy_document=TRUST, is_principal=False)
+    assert _form(route)["IsPrincipal"] == ["false"]
 
 
 @respx.mock
@@ -384,7 +410,7 @@ async def test_policy_validate_omits_evaluation_fields_when_not_set(rest_server)
     route = _validate_route(LINT_ONLY_RESPONSE)
     await call(rest_server, "iam_policy_validate", policy_document=READ_ONLY_POLICY)
     form = _form(route)
-    assert set(form) == {"Action", "Version", "PolicyDocument", "IsPrincipal"}
+    assert set(form) == {"Action", "Version", "PolicyDocument"}
     assert not OPTIONAL_FIELDS & set(form)
 
 
@@ -448,3 +474,44 @@ async def test_policy_validate_rejects_bad_json_without_calling(rest_server):
     with pytest.raises(ToolError, match="policy_document isn't valid JSON"):
         await call(rest_server, "iam_policy_validate", policy_document="{bad")
     assert not route.called
+
+
+@respx.mock
+async def test_policy_validate_parses_wasabis_malformed_success_body(rest_server):
+    _validate_route(LIVE_VALID_RESPONSE)
+    result = await call(rest_server, "iam_policy_validate", policy_document=LIST_BUCKETS_POLICY)
+    assert result == {"validation": {}}
+
+
+@respx.mock
+@pytest.mark.parametrize("evaluation", ["Allow", "Deny"])
+async def test_policy_validate_returns_wasabis_evaluation(rest_server, evaluation):
+    _validate_route(_live_evaluated_response(evaluation))
+    result = await call(
+        rest_server,
+        "iam_policy_validate",
+        policy_document=LIST_BUCKETS_POLICY,
+        use_action="s3:ListAllMyBuckets",
+        use_resource="*",
+        use_service="s3",
+    )
+    assert result["evaluation"] == evaluation
+    assert result["validation"] == {"Evaluation": evaluation}
+
+
+@respx.mock
+async def test_policy_validate_reports_the_error_detail(rest_server):
+    _validate_route(MALFORMED_POLICY_DOCUMENT, 400)
+    with pytest.raises(ToolError) as exc:
+        await call(rest_server, "iam_policy_validate", policy_document=LIST_BUCKETS_POLICY)
+    assert (
+        "ValidatePolicy failed: MalformedPolicyDocument: Syntax errors in policy. "
+        "(unexpected end of JSON input)"
+    ) in str(exc.value)
+
+
+@respx.mock
+async def test_policy_validate_refuses_an_unparseable_body(rest_server):
+    _validate_route(b"<Unexpected><ResponseMetadata></Unexpected>")
+    with pytest.raises(ToolError, match="ValidatePolicy failed: the response wasn't valid XML"):
+        await call(rest_server, "iam_policy_validate", policy_document=LIST_BUCKETS_POLICY)

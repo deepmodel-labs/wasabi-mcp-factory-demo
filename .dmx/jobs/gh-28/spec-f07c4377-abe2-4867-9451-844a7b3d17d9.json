@@ -1,0 +1,56 @@
+{
+  "loop_name": "spec",
+  "job_id": "gh-28",
+  "task_id": "f07c4377-abe2-4867-9451-844a7b3d17d9",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "create-ticket"
+  ],
+  "skills_completed": [
+    "create-ticket"
+  ],
+  "skill_outputs": {
+    "create-ticket": "Used existing ticket #28 (gh-28); no new ticket created. Ran create-branch flow with ticket_id=28.\nBranch bug-gh-28-iampolicyvalidate-omit-isprincipal-for created from main on origin and checked out locally.\nWrote .dmx/jobs/_pending-f07c4377/spec.md: context (live Wasabi measurements), scope, out of scope, technical approach, 4 questions answered.\nApproach: omit IsPrincipal when is_principal=true, send IsPrincipal=false for resource policies; rest.iam_query falls back to parsing only the <{Action}Response> element on ParseError;\nadd top-level `evaluation` (Allow/Deny) beside `validation`; append <Detail> to IAM/S3 XML error messages when present.\nTests: respx with live-shaped malformed 200 bodies, Evaluation Allow/Deny, MalformedPolicyDocument+Detail; updated live test; techContext note, tool docs regen.\nIssue #28 labelled bug + in-progress."
+  },
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "Spec completeness check passed",
+      "checks": [
+        {
+          "name": "spec_exists",
+          "pass": true,
+          "message": "spec.md exists"
+        },
+        {
+          "name": "qa_answered",
+          "pass": true,
+          "message": "Q&A section has 4/4 answered question(s)"
+        },
+        {
+          "name": "technical_approach_filled",
+          "pass": true,
+          "message": "Technical Approach section has content"
+        },
+        {
+          "name": "scope_defined",
+          "pass": true,
+          "message": "Scope section has content"
+        },
+        {
+          "name": "spec_identity_matches_branch",
+          "pass": true,
+          "message": "spec.md branch matches bug-gh-28-iampolicyvalidate-omit-isprincipal-for"
+        }
+      ],
+      "tool": "check_spec_complete"
+    }
+  ],
+  "outcome": "success",
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T08:59:02.106597+00:00",
+  "updated_at": "2026-11-20T09:00:36.734036+00:00",
+  "finish_message": "**spec loop \u2014 complete** (outcome: `success`)\n\nChaining automatically to **plan** loop.\n\nLOOP RUNTIME \u2014 do not suggest workflow commands or alternative paths.\n\nNext skill: `plan` (Loop: plan | Skill 1/1) | Job: `gh-28` | Task: `b3b43288`\nTicket files: `.dmx/jobs/gh-28/spec.md`, `tasks.md`, `activeContext.md` (in that folder).\n\nREQUIRED: Call `get_skill_definition` with name=`plan` to fetch the skill instructions, then execute them exactly as written.\n\nREQUIRED: When the skill finishes, you MUST immediately call the `loop_advance` MCP tool with `skill`=`plan` and, as the `output` argument, a summary of what the skill did in 10 lines or fewer. Do not wait for user input. Do not suggest next steps. Call loop_advance.",
+  "validation_started_at": "2026-11-20T09:00:33.445670+00:00"
+}

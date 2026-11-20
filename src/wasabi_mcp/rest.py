@@ -48,6 +48,13 @@ def _error_element(root: ElementTree.Element) -> ElementTree.Element | None:
     return root if root.tag == "Error" else root.find(".//Error")
 
 
+def _error_message(error: ElementTree.Element, default: str) -> str:
+    """An ``<Error>``'s ``Message`` (else ``default``), with `` (<Detail>)`` when present."""
+    message = error.findtext("Message") or default
+    detail = (error.findtext("Detail") or "").strip()
+    return f"{message} ({detail})" if detail else message
+
+
 def _xml_error(response: httpx.Response) -> tuple[str, str]:
     """(code, message) from an S3 ``<Error>`` or IAM ``<ErrorResponse><Error>`` body."""
     try:
@@ -58,7 +65,7 @@ def _xml_error(response: httpx.Response) -> tuple[str, str]:
         error = _error_element(root)
         if error is not None:
             code = error.findtext("Code") or f"HTTP {response.status_code}"
-            return code, error.findtext("Message") or response.reason_phrase
+            return code, _error_message(error, response.reason_phrase)
     text = response.text.strip()[:500] or response.reason_phrase
     return f"HTTP {response.status_code}", text
 
@@ -139,7 +146,9 @@ def iam_query(
     """A SigV4-signed (``iam``, us-east-1) Query API form POST; returns the parsed XML.
 
     Fields are percent-encoded as botocore does (a space is ``%20``, not ``+``). A 2xx
-    body holding an ``<Error>`` with a ``Code`` is raised like a non-2xx response.
+    body holding an ``<Error>`` with a ``Code`` is raised like a non-2xx response. A 2xx
+    body that isn't well-formed XML is parsed from its ``<{action_name}Response>`` element
+    alone, else refused.
     """
     credentials = _require_keys(settings, action_name)
     fields = {"Action": action_name, "Version": IAM_VERSION}
@@ -152,12 +161,31 @@ def iam_query(
     if not response.is_success:
         code, message = _xml_error(response)
         raise ToolRefused(f"{action_name} failed: {code}: {message}")
-    root = parse_xml(response.content)
+    root = _parse_action_response(response, action_name)
     error = _error_element(root)
     if error is not None and error.findtext("Code"):
-        message = error.findtext("Message") or "no message"
+        message = _error_message(error, "no message")
         raise ToolRefused(f"{action_name} failed: {error.findtext('Code')}: {message}")
     return root
+
+
+def _parse_action_response(response: httpx.Response, action_name: str) -> ElementTree.Element:
+    """Parse an IAM Query API body; if it isn't well-formed XML, parse just its
+    ``<{action_name}Response>`` element (Wasabi's ValidatePolicy appends stray tags)."""
+    try:
+        return parse_xml(response.content)
+    except ElementTree.ParseError:
+        pass
+    text = response.text
+    tag = f"{action_name}Response"
+    start = text.find(f"<{tag}")
+    end = text.find(f"</{tag}>", start)
+    if start != -1 and end != -1:
+        try:
+            return parse_xml(text[start : end + len(tag) + 3])
+        except ElementTree.ParseError:
+            pass
+    raise ToolRefused(f"{action_name} failed: the response wasn't valid XML")
 
 
 def _json(response: httpx.Response) -> Any:
