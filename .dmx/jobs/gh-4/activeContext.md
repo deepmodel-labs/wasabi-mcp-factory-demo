@@ -3,7 +3,6 @@
 ## Open Decisions
 
 ## Session Notes
-- spec loop completed (outcome: success) — chained to plan (job `gh-4`).
 - plan loop completed (outcome: success) — chained to dev (job `gh-4`).
 - Added IAM shared helpers plus users, access keys and groups tool groups with tests and docs — Phase 1 complete.
 - dev loop iterating (round 1) — repeat_until 'all_phases_complete' not yet met (job `gh-4`).
@@ -13,3 +12,4 @@
 - dev loop completed (outcome: success) — chained to validate (job `gh-4`).
 - validate loop completed (outcome: success) — chained to release (job `gh-4`).
 - Merged origin/main (append-only memory-bank conflicts resolved, keeping both sides; 548 tests pass). PR opened for: Add IAM and STS tool groups (users, keys, groups, roles, policies, account).
+- release loop completed (outcome: success) (job `gh-4`).
