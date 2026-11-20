@@ -7,3 +7,5 @@
 - spec loop completed (outcome: success) — chained to plan (job `gh-7`).
 - plan loop completed (outcome: success) — chained to dev (job `gh-7`).
 - Added object read tools (objects_read.py), moto tests and docs — Phase 1 complete.
+- dev loop iterating (round 1) — repeat_until 'all_phases_complete' not yet met (job `gh-7`).
+- Added object write and delete tools (objects_write.py), moto tests and docs — Phase 2 complete.

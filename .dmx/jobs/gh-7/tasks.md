@@ -18,12 +18,12 @@
 - [x] Write `docs/tools/objects_read.md` (name, kind, description table in catalogue order)
 
 ## Phase 2: Object write and delete tools
-- [ ] Create `src/wasabi_mcp/tools/objects_write.py` importing `_bucket_region`/`_s3` from `objects_read`; add `object_put_text` (W): `require_writable`, reject encoded body > 1 MiB before any call, `overwrite=False` → HeadObject and refuse if the key exists, optional `content_type`/`metadata`
-- [ ] Add `object_copy` (W) to `objects_write.py`: same-or-cross-bucket CopyObject with the same overwrite rule, optional `version_id` of the source
-- [ ] Add `object_delete` (D) and `object_delete_many` (D) to `objects_write.py`: `confirm: bool = False` + `require_confirmed` first; batch takes `keys` (≤1,000) or `prefix` + `max_keys` (≤10,000), DeleteObjects in batches of 1,000, returns `deleted` and `errors`
-- [ ] Add `object_tagging_set` (W), `object_tagging_delete` (D) and `object_metadata_update` (W, copy-in-place with `MetadataDirective=REPLACE`) to `objects_write.py`
-- [ ] Write `tests/tools/test_objects_write.py` (moto): put/copy happy paths and overwrite refusal, put rejecting > 1 MiB, read-only refusal for every W/D tool, delete tools refusing without `confirm=true`, batch delete by keys and by prefix across >1,000 objects, tagging set/delete, metadata update
-- [ ] Write `docs/tools/objects_write.md`
+- [x] Create `src/wasabi_mcp/tools/objects_write.py` importing `_bucket_region`/`_s3` from `objects_read`; add `object_put_text` (W): `require_writable`, reject encoded body > 1 MiB before any call, `overwrite=False` → HeadObject and refuse if the key exists, optional `content_type`/`metadata`
+- [x] Add `object_copy` (W) to `objects_write.py`: same-or-cross-bucket CopyObject with the same overwrite rule, optional `version_id` of the source
+- [x] Add `object_delete` (D) and `object_delete_many` (D) to `objects_write.py`: `confirm: bool = False` + `require_confirmed` first; batch takes `keys` (≤1,000) or `prefix` + `max_keys` (≤10,000), DeleteObjects in batches of 1,000, returns `deleted` and `errors`
+- [x] Add `object_tagging_set` (W), `object_tagging_delete` (D) and `object_metadata_update` (W, copy-in-place with `MetadataDirective=REPLACE`) to `objects_write.py`
+- [x] Write `tests/tools/test_objects_write.py` (moto): put/copy happy paths and overwrite refusal, put rejecting > 1 MiB, read-only refusal for every W/D tool, delete tools refusing without `confirm=true`, batch delete by keys and by prefix across >1,000 objects, tagging set/delete, metadata update
+- [x] Write `docs/tools/objects_write.md`
 
 ## Phase 3: Object Lock (object-level) and presign tools
 - [ ] Create `src/wasabi_mcp/tools/object_lock.py` with `object_retention_get` (R), `object_retention_set` (D; mode, retain-until, `bypass_governance`), `object_legal_hold_get` (R), `object_legal_hold_set` (D; ON/OFF); "not configured" results when absent
