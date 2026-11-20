@@ -12,14 +12,14 @@
     "implement-next-phase"
   ],
   "skill_outputs": {
-    "implement-next-phase": "Phase 2 (Catalogue Contract Tests) complete; all 6 tasks checked off.\n- tests/catalogue.py: 166 entries (PRD 6.1\u20136.14 in order plus server_info) with kind and module, generated from the PRD tables and cross-checked against each module's registrations.\n- tests/test_catalogue.py: registered set == catalogue (missing/extra named), total 166; each tool registered by its catalogue module (fresh MCPServer per group); annotations match kind; D tools have confirm=False default, R/W don't.\n- Schema-driven dummy args; strict network guard (respx catch-all + botocore before-send via patched Clients._client) proves every W/D tool refuses read-only, and every D tool refuses without confirm, with zero requests.\n- Secret-leak test runs every R tool against moto (seeded bucket/object/user) and respx Stats/WACM at 200 and 403; no SECRETS in results or error text.\n- tests/helpers.call made server/name positional-only so tools with a `name` param work. Mutation check confirmed a removed guard fails the test.\n- Full gate passed: ruff check, format --check, pytest (1247 passed). Uncommitted.",
-    "commit": "Committed 17a8e0e on feature-gh-15-add-catalogue-contract-tests-multipart (not pushed).\nfeat: add multipart upload tools to the transfer group \u2014 five PRD 6.5 tools, moto tests, docs/tools/transfer.md rows.\nMemory: promoted moto multipart test limits to .dmx/techContext.md; session note added to activeContext.md.\nStaged only project files and the gh-15 job folder; untracked environment dotfiles (.bashrc, .idea, .mcp.json, scripts, etc.) left out.\nNo attribution trailers. Footer: Closes #15."
+    "implement-next-phase": "Phase 3 (Live Suite) complete; all 5 tasks checked off.\n- tests/live/conftest.py: session live_settings (skips unless WASABI_LIVE=1 and both keys; forces writable), live_server, bucket fixture, new_name(\"bucket|user|group|policy\") -> wasabi-mcp-test-<uuid>, session finalizer that deletes recorded buckets (all versions, markers, uploads), users, groups and policies via boto3 and fails if anything is left.\n- test_buckets_objects.py: bucket create/versioning/tagging/delete; object put/get/copy/rename/delete; presigned GET over HTTP; lifecycle set/get/delete.\n- test_iam.py: user, group, policy create, add/attach, verify, detach/remove, delete.\n- test_scenarios.py: S1 (bucket_list + Stats shape), Stats usage summary, S2 (.mp4 presign + download), S4 (no bucket policy; policy granting PutObject found via list/get), S5 (dev tag + 90-day tmp/ expiry).\n- All modules pytestmark live; `uv run pytest` deselects 10, `-m live` skips without creds. Dry run against moto: 7 pass, only MOVE/Stats fail (moto gaps), nothing left behind. Not run against real Wasabi (no credentials).\n- Full gate passed (1247 passed, 10 deselected). Uncommitted.",
+    "commit": "Committed 20841a3 (not pushed): test: check the server against the PRD section 6 tool catalogue.\nIncludes tests/catalogue.py, tests/test_catalogue.py, positional-only tests/helpers.call, gh-15 job file updates.\nMemory: promoted catalogue/helper and moto-backed leak-test patterns to .dmx/techContext.md; cleared Open Learnings; session note added.\nUntracked environment dotfiles left unstaged. No attribution trailers. Footer: Closes #15."
   },
   "validator_results": [],
   "outcome": "success",
-  "iteration_count": 1,
+  "iteration_count": 2,
   "timestamp": "2026-11-20T03:27:10.421286+00:00",
-  "updated_at": "2026-11-20T04:05:55.883846+00:00",
+  "updated_at": "2026-11-20T04:20:09.539237+00:00",
   "validation_started_at": null,
   "finish_message": null
 }

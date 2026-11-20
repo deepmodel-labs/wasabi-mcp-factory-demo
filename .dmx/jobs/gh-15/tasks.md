@@ -25,11 +25,11 @@
 - [x] Test every R tool called with `conftest.SECRETS` in settings never returns those strings, including error text (PRD 8.5)
 
 ## Phase 3: Live Suite
-- [ ] Add `tests/live/conftest.py`: skip unless `WASABI_LIVE=1` and keys set; writable server from `Settings.from_env()`; `wasabi-mcp-test-<uuid>` name factory; session finalizer deleting any buckets (with objects/versions), users, groups and policies created by the run
-- [ ] Add `tests/live/test_buckets_objects.py`: bucket create/versioning/tagging/delete; object put/get/copy/rename/delete; presigned GET fetched over HTTP; lifecycle set/get/delete
-- [ ] Add `tests/live/test_iam.py`: IAM user, group, policy, attach and delete flow
-- [ ] Add `tests/live/test_scenarios.py`: S1 (Stats summary, shape-only), S2 (two `.mp4` + one `.txt` under `media/`, `presign_get_for_prefix` returns only `.mp4` URLs that download), S4, S5
-- [ ] Mark all live tests `@pytest.mark.live` and confirm `uv run pytest` deselects them
+- [x] Add `tests/live/conftest.py`: skip unless `WASABI_LIVE=1` and keys set; writable server from `Settings.from_env()`; `wasabi-mcp-test-<uuid>` name factory; session finalizer deleting any buckets (with objects/versions), users, groups and policies created by the run
+- [x] Add `tests/live/test_buckets_objects.py`: bucket create/versioning/tagging/delete; object put/get/copy/rename/delete; presigned GET fetched over HTTP; lifecycle set/get/delete
+- [x] Add `tests/live/test_iam.py`: IAM user, group, policy, attach and delete flow
+- [x] Add `tests/live/test_scenarios.py`: S1 (Stats summary, shape-only), S2 (two `.mp4` + one `.txt` under `media/`, `presign_get_for_prefix` returns only `.mp4` URLs that download), S4, S5
+- [x] Mark all live tests `@pytest.mark.live` and confirm `uv run pytest` deselects them
 
 ## Phase 4: Docs
 - [ ] Add `docs/tools.md` assembled from `docs/tools/*.md`, grouped by area
