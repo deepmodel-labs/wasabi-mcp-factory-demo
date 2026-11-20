@@ -4,6 +4,15 @@ import pytest
 
 from tests.helpers import ToolError, call
 from tests.tools.iam_support import READ_ONLY_POLICY, assert_no_secrets, client_error, stubbed
+from tests.tools.secrets_support import (
+    UNUSABLE_DIRS,
+    assert_absent,
+    call_with_text,
+    read_secrets_file,
+    secrets_server,
+    unusable_dir,
+    with_secrets_dir,
+)
 from wasabi_mcp.clients import Clients
 from wasabi_mcp.tools.iam_users import generate_password
 
@@ -328,3 +337,68 @@ def test_generate_password_has_every_character_class():
         assert any(c.isdigit() for c in password)
         assert any(not c.isalnum() for c in password)
     assert generate_password() != generate_password()
+
+
+# iam_login_profile_create with WASABI_MCP_SECRETS_DIR
+
+
+async def test_login_profile_create_without_secrets_dir_returns_the_password(server):
+    await _user(server)
+    result = await call(server, "iam_login_profile_create", user_name="alice", confirm=True)
+    assert set(result) == {
+        "ok",
+        "user_name",
+        "password",
+        "password_reset_required",
+        "create_date",
+        "note",
+    }
+
+
+async def test_login_profile_create_writes_the_password_to_a_file(settings, tmp_path):
+    directory = tmp_path / "secrets"
+    server = secrets_server(settings, directory)
+    await _user(server)
+    result, text = await call_with_text(
+        server, "iam_login_profile_create", user_name="alice", confirm=True
+    )
+    assert set(result) == {
+        "ok",
+        "user_name",
+        "password_reset_required",
+        "create_date",
+        "secrets_file",
+        "note",
+    }
+    assert result["user_name"] == "alice"
+    assert result["password_reset_required"] is True
+    saved = read_secrets_file(result["secrets_file"], directory)
+    assert saved["user_name"] == "alice"
+    assert len(saved["password"]) == 24
+    assert_absent(text, saved["password"])
+
+
+async def test_login_profile_create_keeps_a_given_password_out_of_the_result(settings, tmp_path):
+    directory = tmp_path / "secrets"
+    server = secrets_server(settings, directory)
+    await _user(server)
+    result, text = await call_with_text(
+        server,
+        "iam_login_profile_create",
+        user_name="alice",
+        password="Given-Passw0rd!",
+        confirm=True,
+    )
+    assert read_secrets_file(result["secrets_file"], directory)["password"] == "Given-Passw0rd!"
+    assert_absent(text, "Given-Passw0rd!")
+
+
+@pytest.mark.parametrize(("kind", "match"), UNUSABLE_DIRS)
+async def test_login_profile_create_refuses_an_unusable_dir_before_calling_wasabi(
+    rest_settings, monkeypatch, tmp_path, kind, match
+):
+    # The Stubber has no queued responses: reaching IAM would fail differently.
+    settings = with_secrets_dir(rest_settings, unusable_dir(tmp_path, kind))
+    for stub in stubbed(settings, monkeypatch):
+        with pytest.raises(ToolError, match=match):
+            await call(stub.server, "iam_login_profile_create", user_name="alice", confirm=True)

@@ -15,12 +15,12 @@
 - [x] Add tests in `tests/test_config.py` (unset, empty, `~` expansion, relative path) and `tests/tools/test_secrets_helper.py` (dir created 0700, 0755 refused with chmod hint, not-writable refused — skip as root, non-directory refused, file mode 0600, two writes → two distinct files, O_EXCL never overwrites, write failure message names the resource)
 
 ## Phase 2: Wire the Six Tools
-- [ ] `iam_access_key_create` in `src/wasabi_mcp/tools/iam_keys.py`: check dir after guards and before the API call; when set, write the secret access key to a file and return access key ID, user name, status, create date and `secrets_file`
-- [ ] `iam_login_profile_create` in `src/wasabi_mcp/tools/iam_users.py`: when set, write the password to a file; return user name, create date, reset-required flag and `secrets_file`
-- [ ] `iam_mfa_virtual_device_create` in `src/wasabi_mcp/tools/iam_account.py`: when set, write JSON with `base32_string_seed` and base64 `qr_code_png` to one file; return only serial number and `secrets_file`
-- [ ] `sts_assume_role` and `sts_session_token` in `src/wasabi_mcp/tools/iam_roles.py`: when set, write access key ID, secret key, session token and expiration; return access key ID, expiration, assumed role user (where applicable) and `secrets_file`
-- [ ] `wacm_sub_account_create` in `src/wasabi_mcp/tools/wacm_sub_accounts.py`: when set, write access key ID and secret key; return scrubbed `sub_account`, access key ID and `secrets_file`
-- [ ] Add per-tool tests in `tests/tools/test_iam_keys.py`, `test_iam_users.py`, `test_iam_account.py`, `test_iam_roles.py`, `test_wacm_sub_accounts.py`: secrets-dir mode writes a 0600 file holding the secret (MFA: seed + PNG), no secret value in `structured_content` or `content`, unset mode result unchanged, unsafe dir refuses without reaching the mocked backend (Stubber with no queued responses / respx with no route called)
+- [x] `iam_access_key_create` in `src/wasabi_mcp/tools/iam_keys.py`: check dir after guards and before the API call; when set, write the secret access key to a file and return access key ID, user name, status, create date and `secrets_file`
+- [x] `iam_login_profile_create` in `src/wasabi_mcp/tools/iam_users.py`: when set, write the password to a file; return user name, create date, reset-required flag and `secrets_file`
+- [x] `iam_mfa_virtual_device_create` in `src/wasabi_mcp/tools/iam_account.py`: when set, write JSON with `base32_string_seed` and base64 `qr_code_png` to one file; return only serial number and `secrets_file`
+- [x] `sts_assume_role` and `sts_session_token` in `src/wasabi_mcp/tools/iam_roles.py`: when set, write access key ID, secret key, session token and expiration; return access key ID, expiration, assumed role user (where applicable) and `secrets_file`
+- [x] `wacm_sub_account_create` in `src/wasabi_mcp/tools/wacm_sub_accounts.py`: when set, write access key ID and secret key; return scrubbed `sub_account`, access key ID and `secrets_file`
+- [x] Add per-tool tests in `tests/tools/test_iam_keys.py`, `test_iam_users.py`, `test_iam_account.py`, `test_iam_roles.py`, `test_wacm_sub_accounts.py`: secrets-dir mode writes a 0600 file holding the secret (MFA: seed + PNG), no secret value in `structured_content` or `content`, unset mode result unchanged, unsafe dir refuses without reaching the mocked backend (Stubber with no queued responses / respx with no route called)
 
 ## Phase 3: Documentation
 - [ ] Document `WASABI_MCP_SECRETS_DIR` and both modes (unset: secrets returned; set: written to 0600 files, dir requirements, failure-after-create behaviour) in `README.md` configuration section

@@ -2,6 +2,16 @@ import pytest
 
 from tests.helpers import ToolError, call
 from tests.tools.iam_support import assert_no_secrets, client_error, stubbed
+from tests.tools.secrets_support import (
+    UNUSABLE_DIRS,
+    assert_absent,
+    call_with_text,
+    read_secrets_file,
+    secrets_server,
+    unusable_dir,
+    with_secrets_dir,
+)
+from wasabi_mcp.tools import _secrets
 
 
 @pytest.fixture
@@ -218,3 +228,94 @@ async def test_access_key_last_used_missing_key(stub):
     )
     with pytest.raises(ToolError, match="GetAccessKeyLastUsed failed: NoSuchEntity"):
         await call(stub.server, "iam_access_key_last_used", access_key_id="AKIAMISSING000000000")
+
+
+# iam_access_key_create with WASABI_MCP_SECRETS_DIR
+
+
+@pytest.fixture
+def secrets_dir(tmp_path):
+    return tmp_path / "secrets"
+
+
+async def test_access_key_create_without_secrets_dir_returns_the_secret(server, alice):
+    result = await _key(server)
+    assert set(result) == {
+        "ok",
+        "user_name",
+        "access_key_id",
+        "secret_access_key",
+        "status",
+        "create_date",
+        "note",
+    }
+
+
+async def test_access_key_create_writes_the_secret_to_a_file(settings, alice, secrets_dir):
+    server = secrets_server(settings, secrets_dir)
+    result, text = await call_with_text(
+        server, "iam_access_key_create", user_name=alice, confirm=True
+    )
+    assert set(result) == {
+        "ok",
+        "user_name",
+        "access_key_id",
+        "status",
+        "create_date",
+        "secrets_file",
+        "note",
+    }
+    assert result["user_name"] == alice
+    assert result["status"] == "Active"
+    saved = read_secrets_file(result["secrets_file"], secrets_dir)
+    assert saved["access_key_id"] == result["access_key_id"]
+    assert_absent(text, saved["secret_access_key"])
+    assert "secret_access_key" not in text
+
+
+async def test_access_key_create_twice_writes_two_files(settings, alice, secrets_dir):
+    server = secrets_server(settings, secrets_dir)
+    first = await call(server, "iam_access_key_create", user_name=alice, confirm=True)
+    second = await call(server, "iam_access_key_create", user_name=alice, confirm=True)
+    assert first["secrets_file"] != second["secrets_file"]
+    one = read_secrets_file(first["secrets_file"], secrets_dir)
+    two = read_secrets_file(second["secrets_file"], secrets_dir)
+    assert one["secret_access_key"] != two["secret_access_key"]
+
+
+@pytest.mark.parametrize(("kind", "match"), UNUSABLE_DIRS)
+async def test_access_key_create_refuses_an_unusable_dir_before_calling_wasabi(
+    rest_settings, monkeypatch, tmp_path, kind, match
+):
+    # The Stubber has no queued responses: reaching IAM would fail differently.
+    settings = with_secrets_dir(rest_settings, unusable_dir(tmp_path, kind))
+    for stub in stubbed(settings, monkeypatch):
+        with pytest.raises(ToolError, match=match):
+            await _key(stub.server)
+
+
+async def test_access_key_create_names_the_key_when_the_file_cant_be_written(
+    rest_settings, monkeypatch, secrets_dir
+):
+    secrets_dir.mkdir(mode=0o700)
+    taken = secrets_dir / "iam_access_key_create-taken.json"
+    taken.write_text("existing")
+    monkeypatch.setattr(_secrets.secrets, "token_hex", lambda _n: "taken")
+    for stub in stubbed(with_secrets_dir(rest_settings, secrets_dir), monkeypatch):
+        stub.iam.add_response(
+            "create_access_key",
+            {
+                "AccessKey": {
+                    "UserName": "alice",
+                    "AccessKeyId": "AKIAALICE000000000000",
+                    "SecretAccessKey": "brand-new-secret",
+                    "Status": "Active",
+                }
+            },
+            {"UserName": "alice"},
+        )
+        with pytest.raises(ToolError, match="Access key AKIAALICE000000000000 was created") as err:
+            await _key(stub.server)
+        assert "delete or rotate" in str(err.value)
+        assert "brand-new-secret" not in str(err.value)
+    assert taken.read_text() == "existing"

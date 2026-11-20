@@ -20,6 +20,11 @@ from wasabi_mcp.safety import ToolRefused
 DIR_MODE = 0o700
 FILE_MODE = 0o600
 
+SAVED_NOTE = (
+    "The secret was written to secrets_file (mode 0600) and isn't returned here. It can't "
+    "be retrieved from Wasabi again: keep the file safe, or delete it once it's stored."
+)
+
 
 def prepare(settings: Settings) -> Path | None:
     """Check the secrets directory, creating it with mode 0700 if it doesn't exist.

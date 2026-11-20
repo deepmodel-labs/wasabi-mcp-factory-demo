@@ -8,6 +8,15 @@ import respx
 from tests.conftest import FAKE
 from tests.helpers import ToolError, call
 from tests.tools.iam_support import assert_no_secrets, client_error, stubbed
+from tests.tools.secrets_support import (
+    UNUSABLE_DIRS,
+    assert_absent,
+    call_with_text,
+    read_secrets_file,
+    secrets_server,
+    unusable_dir,
+    with_secrets_dir,
+)
 
 GET_USER_MFA = (
     b'<GetUserMFAResponse xmlns="https://iam.amazonaws.com/doc/2010-05-08/">'
@@ -460,3 +469,61 @@ async def test_mfa_device_deactivate_refused_read_only(read_only_server):
             serial_number=SERIAL,
             confirm=True,
         )
+
+
+# iam_mfa_virtual_device_create with WASABI_MCP_SECRETS_DIR
+
+
+async def test_mfa_virtual_device_create_without_secrets_dir_returns_the_seed(server):
+    result = await _virtual_device(server)
+    assert set(result) == {"ok", "serial_number", "base32_seed", "qr_png_base64", "note"}
+
+
+async def test_mfa_virtual_device_create_writes_seed_and_png_to_one_file(settings, tmp_path):
+    directory = tmp_path / "secrets"
+    server = secrets_server(settings, directory)
+    result, text = await call_with_text(
+        server, "iam_mfa_virtual_device_create", device_name="alice-mfa", confirm=True
+    )
+    assert set(result) == {"ok", "serial_number", "secrets_file", "note"}
+    assert result["serial_number"] == SERIAL
+    saved = read_secrets_file(result["secrets_file"], directory)
+    assert saved["serial_number"] == SERIAL
+    assert saved["base32_string_seed"].isalnum()
+    assert base64.b64decode(saved["qr_code_png"])
+    assert_absent(text, saved["base32_string_seed"], saved["qr_code_png"])
+
+
+async def test_mfa_virtual_device_create_saves_the_exact_png(rest_settings, monkeypatch, tmp_path):
+    directory = tmp_path / "secrets"
+    png = b"\x89PNG\r\n\x1a\nfake"
+    for stub in stubbed(with_secrets_dir(rest_settings, directory), monkeypatch):
+        stub.iam.add_response(
+            "create_virtual_mfa_device",
+            {
+                "VirtualMFADevice": {
+                    "SerialNumber": SERIAL,
+                    "Base32StringSeed": b"JBSWY3DPEHPK3PXP",
+                    "QRCodePNG": png,
+                }
+            },
+            {"VirtualMFADeviceName": "alice-mfa"},
+        )
+        result, text = await call_with_text(
+            stub.server, "iam_mfa_virtual_device_create", device_name="alice-mfa", confirm=True
+        )
+    saved = read_secrets_file(result["secrets_file"], directory)
+    assert saved["base32_string_seed"] == "JBSWY3DPEHPK3PXP"
+    assert base64.b64decode(saved["qr_code_png"]) == png
+    assert_absent(text, "JBSWY3DPEHPK3PXP", base64.b64encode(png).decode())
+
+
+@pytest.mark.parametrize(("kind", "match"), UNUSABLE_DIRS)
+async def test_mfa_virtual_device_create_refuses_an_unusable_dir_before_calling_wasabi(
+    rest_settings, monkeypatch, tmp_path, kind, match
+):
+    # The Stubber has no queued responses: reaching IAM would fail differently.
+    settings = with_secrets_dir(rest_settings, unusable_dir(tmp_path, kind))
+    for stub in stubbed(settings, monkeypatch):
+        with pytest.raises(ToolError, match=match):
+            await _virtual_device(stub.server)

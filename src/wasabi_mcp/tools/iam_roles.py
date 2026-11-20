@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
 from wasabi_mcp.config import Settings
 from wasabi_mcp.safety import ToolRefused, require_confirmed
-from wasabi_mcp.tools import DESTRUCTIVE, READ, ToolContext, clean
+from wasabi_mcp.tools import DESTRUCTIVE, READ, ToolContext, _secrets, clean
 from wasabi_mcp.tools._iam import (
     ACCESS_DENIED,
     DEFAULT_MAX_ITEMS,
@@ -55,6 +56,19 @@ def temporary_credentials(credentials: dict[str, Any]) -> dict[str, Any]:
         "secret_access_key": credentials["SecretAccessKey"],
         "session_token": credentials["SessionToken"],
         "expiration": clean(credentials.get("Expiration")),
+    }
+
+
+def saved_credentials(
+    directory: Path, tool: str, credentials: dict[str, Any], resource: str
+) -> dict[str, Any]:
+    """Write STS ``credentials`` to a secrets file; return the key ID, expiry and path."""
+    temporary = temporary_credentials(credentials)
+    path = _secrets.write(directory, tool, temporary, resource)
+    return {
+        "access_key_id": temporary["access_key_id"],
+        "expiration": temporary["expiration"],
+        "secrets_file": path,
     }
 
 
@@ -208,11 +222,13 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
     ) -> dict[str, Any]:
         """Assume an IAM role and get temporary credentials; needs confirm=true.
         duration_seconds is 900 to 43,200, and an optional inline policy narrows access.
-        The credentials are returned once. Wasabi doesn't let the root account assume
-        roles."""
+        The credentials are returned once; with WASABI_MCP_SECRETS_DIR set, they go to a new
+        0600 file instead and `secrets_file` gives its path. Wasabi doesn't let the root
+        account assume roles."""
         require_confirmed(settings, "AssumeRole", confirm)
         check_duration("duration_seconds", duration_seconds, MIN_SESSION_SECONDS)
         document = policy_json(policy, "policy") if policy is not None else None
+        directory = _secrets.prepare(settings)
         response = invoke(
             "AssumeRole",
             clients.sts().assume_role,
@@ -222,10 +238,23 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
             DurationSeconds=duration_seconds,
             Policy=document,
         )
+        assumed_role_user = clean(response.get("AssumedRoleUser", {}))
+        if directory is not None:
+            return {
+                "ok": True,
+                "credentials": saved_credentials(
+                    directory,
+                    "sts_assume_role",
+                    response["Credentials"],
+                    f"STS session {session_name} for role {role_arn}",
+                ),
+                "assumed_role_user": assumed_role_user,
+                "note": _secrets.SAVED_NOTE,
+            }
         return {
             "ok": True,
             "credentials": temporary_credentials(response["Credentials"]),
-            "assumed_role_user": clean(response.get("AssumedRoleUser", {})),
+            "assumed_role_user": assumed_role_user,
             "note": SECRET_NOTE,
         }
 
@@ -238,11 +267,13 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
     ) -> dict[str, Any]:
         """Get temporary session credentials for the caller, optionally MFA-authenticated
         with mfa_serial and mfa_code; needs confirm=true. duration_seconds is 900 to 43,200.
-        The credentials are returned once."""
+        The credentials are returned once; with WASABI_MCP_SECRETS_DIR set, they go to a new
+        0600 file instead and `secrets_file` gives its path."""
         require_confirmed(settings, "GetSessionToken", confirm)
         check_duration("duration_seconds", duration_seconds, MIN_SESSION_SECONDS)
         if (mfa_serial is None) != (mfa_code is None):
             raise ToolRefused("Give both mfa_serial and mfa_code, or neither")
+        directory = _secrets.prepare(settings)
         response = invoke(
             "GetSessionToken",
             clients.sts().get_session_token,
@@ -250,6 +281,18 @@ def register(server: MCPServer, ctx: ToolContext) -> None:
             SerialNumber=mfa_serial,
             TokenCode=mfa_code,
         )
+        if directory is not None:
+            credentials = response["Credentials"]
+            return {
+                "ok": True,
+                "credentials": saved_credentials(
+                    directory,
+                    "sts_session_token",
+                    credentials,
+                    f"STS session token {credentials['AccessKeyId']}",
+                ),
+                "note": _secrets.SAVED_NOTE,
+            }
         return {
             "ok": True,
             "credentials": temporary_credentials(response["Credentials"]),
