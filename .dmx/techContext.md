@@ -8,6 +8,9 @@
 - mcp 2.3.0 error handling: a tool exception reaches the client with its message only if it subclasses `mcp.server.mcpserver.exceptions.ToolError`, so `ToolRefused` does. In-process `MCPServer.call_tool` raises `ToolError` (`"Error executing tool <name>: <msg>"`) rather than returning `is_error`; `ToolAnnotations` is in `mcp.types`.
 - mcp 2.3.0 stdio client: `mcp.client.stdio.stdio_client(StdioServerParameters(...))` with `mcp.client.session.ClientSession`. `ThreadedMotoServer(port=0).get_host_and_port()` gives the bound port.
 - respx matches routes in registration order: register path-specific routes before broad `host=` routes.
+- respx can't see boto3 traffic (boto3 sends with urllib3; respx patches httpx). Use botocore's `Stubber` for Wasabi-only behaviour on boto3 calls; respx only for `rest.py` helpers.
+- moto 5.2 IAM gaps: ignores `MaxItems`/`Marker` on ListUsers/ListGroups and `PathPrefix` on ListGroups, never raises `DeleteConflict`, doesn't error on UpdateGroup for a missing group, and reports `PasswordResetRequired=false` whatever was sent.
+- botocore already URL-decodes and parses IAM policy documents (its `json_decode_policies` handler), so boto3 returns them as dicts.
 
 ## Dev setup (once ticket 0 lands)
 - `uv sync`
