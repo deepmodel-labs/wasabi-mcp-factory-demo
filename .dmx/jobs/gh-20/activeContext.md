@@ -1,5 +1,4 @@
 ## Open Learnings
-- In this runner `.github/workflows/ci.yml` was readable (not a /dev/null mount); only writes are blocked.
 
 ## SHA Verification (2026-11-20, for PR description)
 ```
@@ -32,3 +31,6 @@ d0cc045d04ccac9d8b7881df0226f9e82c39688e
 - Phase 1 complete: resolved and cross-checked SHAs (checkout v4.4.0, setup-uv v6.8.0), wrote hand-off ci.yml and ci.yml.patch, verified patch applies byte-identically.
 - dev loop iterating (round 1) — repeat_until 'all_phases_complete' not yet met (job `gh-20`).
 - Phase 2 complete: added tests/test_ci_pinning.py SHA-pinning guard; ruff and full pytest pass (1 expected xfail on the unpatched real ci.yml).
+- dev loop completed (outcome: success) — chained to validate (job `gh-20`).
+- validate loop completed (outcome: success) — chained to release (job `gh-20`).
+- PR opened for: Pin GitHub Actions in ci.yml to commit SHAs and hand off the patch. Promoted the readable-ci.yml learning and the SHA-pinning rule to techContext.md.
