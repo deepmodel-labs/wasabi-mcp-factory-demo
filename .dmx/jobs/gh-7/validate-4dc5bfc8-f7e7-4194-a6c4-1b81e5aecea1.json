@@ -1,0 +1,63 @@
+{
+  "loop_name": "validate",
+  "job_id": "gh-7",
+  "task_id": "4dc5bfc8-f7e7-4194-a6c4-1b81e5aecea1",
+  "status": "complete",
+  "current_skill_index": 1,
+  "skills": [
+    "validate"
+  ],
+  "skills_completed": [
+    "validate"
+  ],
+  "skill_outputs": {
+    "validate": "Validated gh-7 at f632880 (after rework round 2: merge of latest origin/main with #14 IAM and #12 WACM).\nTasks 23/23 checked; all 5 acceptance criteria covered (S2 test, text cap get/put, delete confirm/read-only guards, regional presign endpoint, moto tests per tool).\nBranch's own src/tests/docs unchanged since last validation; productContext.md keeps both sides with no duplicate bullets; merge-tree with origin/main is clean.\nruff check + format pass; pytest 743 passed.\nNo critical code-quality or security findings; 3 non-blocking suggestions kept (presign_get_for_prefix scan cap, naive datetime handling in object_search, metadata_update dropping some headers).\nUpdated .dmx/jobs/gh-7/validation-report.json (new commit SHA, rework round 2 scope item, updated test counts).\nVerdict: READY FOR PR."
+  },
+  "validator_results": [
+    {
+      "pass": true,
+      "message": "Tests passed \u2014 ran `uv run ruff check . && uv run ruff format --check . && uv run pytest -q` (exit 0)",
+      "checks": [
+        {
+          "name": "tests_pass",
+          "pass": true,
+          "message": "All checks passed!\n130 files already formatted\n........................................................................ [  9%]\n........................................................................ [ 19%]\n........................................................................ [ 29%]\n........................................................................ [ 38%]\n........................................................................ [ 48%]\n........................................................................ [ 58%]\n........................................................................ [ 67%]\n........................................................................ [ 77%]\n........................................................................ [ 87%]\n........................................................................ [ 96%]\n.......................                                                  [100%]\n743 passed in 449.16s (0:07:29)"
+        }
+      ],
+      "tool": "run_tests"
+    },
+    {
+      "pass": false,
+      "message": "Spec adherence check failed \u2014 see checks for details",
+      "checks": [
+        {
+          "name": "scope_matches_spec",
+          "pass": true,
+          "message": "All 13 scope item(s) covered in the diff"
+        },
+        {
+          "name": "edge_cases_addressed",
+          "pass": false,
+          "message": "Unaddressed edge case(s): presign_get_for_prefix has no scan cap: a rare suffix under a large prefix lists without bound in one call, object_search treats naive modified_after/before as local time, while object_lock treats naive times as UTC, object_metadata_update (MetadataDirective=REPLACE) drops Content-Disposition, Content-Encoding and Expires that it doesn't carry over",
+          "findings": [
+            "Unaddressed edge case: presign_get_for_prefix has no scan cap: a rare suffix under a large prefix lists without bound in one call",
+            "Unaddressed edge case: object_search treats naive modified_after/before as local time, while object_lock treats naive times as UTC",
+            "Unaddressed edge case: object_metadata_update (MetadataDirective=REPLACE) drops Content-Disposition, Content-Encoding and Expires that it doesn't carry over"
+          ]
+        },
+        {
+          "name": "no_regressions",
+          "pass": true,
+          "message": "No regressions found in the diff"
+        }
+      ],
+      "tool": "spec_adherence"
+    }
+  ],
+  "outcome": "success",
+  "iteration_count": 0,
+  "timestamp": "2026-11-20T02:56:37.375117+00:00",
+  "updated_at": "2026-11-20T03:14:00.359386+00:00",
+  "validation_started_at": "2026-11-20T03:06:23.669339+00:00",
+  "finish_message": "**validate loop \u2014 complete** (outcome: `success`)\n\nChaining automatically to **release** loop.\n\nLOOP RUNTIME \u2014 do not suggest workflow commands or alternative paths.\n\nNext skill: `prune-jobs` (Loop: release | Skill 1/2) | Job: `gh-7` | Task: `4dfe8ba9`\nTicket files: `.dmx/jobs/gh-7/spec.md`, `tasks.md`, `activeContext.md` (in that folder).\n\nREQUIRED: Call `get_skill_definition` with name=`prune-jobs` to fetch the skill instructions, then execute them exactly as written.\n\nREQUIRED: When the skill finishes, you MUST immediately call the `loop_advance` MCP tool with `skill`=`prune-jobs` and, as the `output` argument, a summary of what the skill did in 10 lines or fewer. Do not wait for user input. Do not suggest next steps. Call loop_advance."
+}

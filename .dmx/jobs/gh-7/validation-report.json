@@ -1,29 +1,114 @@
 {
-  "commit": "ea933f354ab67a9d05f7770dd25f2b79f0bd7ebb",
+  "commit": "f63288014527a2166a96d7790954c215748f8439",
   "scope_items": [
-    {"item": "objects_read.py (PRD 6.2, 6 tools): object_list, object_version_list, object_get_info, object_get_text, object_tagging_get, object_search", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_read.py:166-431"},
-    {"item": "objects_write.py (PRD 6.3, 7 tools): object_put_text, object_copy, object_delete, object_delete_many, object_tagging_set, object_tagging_delete, object_metadata_update", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_write.py:80-331"},
-    {"item": "object_lock.py object-level tools (PRD 6.8): object_retention_get/_set, object_legal_hold_get/_set", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/object_lock.py:148-240 (from main via #11; rework kept main's superset version as asked, so the branch diff adds nothing here)"},
-    {"item": "transfer.py presign tools (PRD 6.5): presign_get, presign_put, presign_get_for_prefix", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/transfer.py:47-158"},
-    {"item": "Tests: test_objects_read.py, test_objects_write.py, test_object_lock.py, test_transfer.py (moto)", "verdict": "covered", "evidence": "tests/tools/test_objects_read.py, test_objects_write.py, test_transfer.py (56 tests); tests/tools/test_object_lock.py:169-363 from main; full suite 392 passed"},
-    {"item": "Docs: objects_read.md, objects_write.md, object_lock.md, transfer.md", "verdict": "covered", "evidence": "docs/tools/objects_read.md, docs/tools/objects_write.md, docs/tools/transfer.md; docs/tools/object_lock.md from main"},
-    {"item": "Rework round 1: merge origin/main, keep main's object_lock files, keep both sides of productContext.md/systemPatterns.md", "verdict": "covered", "evidence": "commit 4223a5f; .dmx/systemPatterns.md; git merge-tree HEAD origin/main is clean"},
-    {"item": "AC: presign_get_for_prefix media/ + .mp4 returns one URL per match across >1 page, none for non-matches (S2)", "verdict": "covered", "evidence": "tests/tools/test_transfer.py:63-81; src/wasabi_mcp/tools/transfer.py:125-148"},
-    {"item": "AC: text get truncates above cap and says so; text put rejects bodies above the cap", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_read.py:297-334; src/wasabi_mcp/tools/objects_write.py:97-102"},
-    {"item": "AC: object delete tools refuse without confirm=true and in read-only mode", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/objects_write.py:186,221,276 (require_confirmed also calls require_writable)"},
-    {"item": "AC: presigned URLs use s3_endpoint_for(region) for the bucket's region", "verdict": "covered", "evidence": "src/wasabi_mcp/tools/transfer.py:65,91,119; tests/tools/test_transfer.py:163-195"},
-    {"item": "AC: every object tool in PRD 6 for this area has a passing moto unit test", "verdict": "covered", "evidence": "tests/tools/test_objects_read.py, test_objects_write.py, test_transfer.py, test_object_lock.py — 392 passed"}
+    {
+      "item": "objects_read.py (PRD 6.2, 6 tools): object_list, object_version_list, object_get_info, object_get_text, object_tagging_get, object_search",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/tools/objects_read.py:166-431"
+    },
+    {
+      "item": "objects_write.py (PRD 6.3, 7 tools): object_put_text, object_copy, object_delete, object_delete_many, object_tagging_set, object_tagging_delete, object_metadata_update",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/tools/objects_write.py:80-331"
+    },
+    {
+      "item": "object_lock.py object-level tools (PRD 6.8): object_retention_get/_set, object_legal_hold_get/_set",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/tools/object_lock.py:148-240 (from main via #11; rework kept main's superset version as asked, so the branch diff adds nothing here)"
+    },
+    {
+      "item": "transfer.py presign tools (PRD 6.5): presign_get, presign_put, presign_get_for_prefix",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/tools/transfer.py:47-158"
+    },
+    {
+      "item": "Tests: test_objects_read.py, test_objects_write.py, test_object_lock.py, test_transfer.py (moto)",
+      "verdict": "covered",
+      "evidence": "tests/tools/test_objects_read.py, test_objects_write.py, test_transfer.py; tests/tools/test_object_lock.py from main; full suite 743 passed at f632880"
+    },
+    {
+      "item": "Docs: objects_read.md, objects_write.md, object_lock.md, transfer.md",
+      "verdict": "covered",
+      "evidence": "docs/tools/objects_read.md, docs/tools/objects_write.md, docs/tools/transfer.md; docs/tools/object_lock.md from main"
+    },
+    {
+      "item": "Rework round 1: merge origin/main, keep main's object_lock files, keep both sides of productContext.md/systemPatterns.md",
+      "verdict": "covered",
+      "evidence": "commit 4223a5f; .dmx/systemPatterns.md; git merge-tree HEAD origin/main is clean"
+    },
+    {
+      "item": "Rework round 2: bring branch up to date with latest main (#14 IAM, #12 WACM), keep both sides of .dmx/productContext.md with no duplicated bullets, re-run tests",
+      "verdict": "covered",
+      "evidence": "merge commit 3402d27; .dmx/productContext.md:13,15 (no duplicate lines); git merge-tree HEAD origin/main is clean; 743 passed"
+    },
+    {
+      "item": "AC: presign_get_for_prefix media/ + .mp4 returns one URL per match across >1 page, none for non-matches (S2)",
+      "verdict": "covered",
+      "evidence": "tests/tools/test_transfer.py:63-81; src/wasabi_mcp/tools/transfer.py:125-148"
+    },
+    {
+      "item": "AC: text get truncates above cap and says so; text put rejects bodies above the cap",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/tools/objects_read.py:297-334; src/wasabi_mcp/tools/objects_write.py:97-102"
+    },
+    {
+      "item": "AC: object delete tools refuse without confirm=true and in read-only mode",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/tools/objects_write.py:186,221,276 (require_confirmed also calls require_writable)"
+    },
+    {
+      "item": "AC: presigned URLs use s3_endpoint_for(region) for the bucket's region",
+      "verdict": "covered",
+      "evidence": "src/wasabi_mcp/tools/transfer.py:65,91,119; tests/tools/test_transfer.py:163-195"
+    },
+    {
+      "item": "AC: every object tool in PRD 6 for this area has a passing moto unit test",
+      "verdict": "covered",
+      "evidence": "tests/tools/test_objects_read.py, test_objects_write.py, test_transfer.py, test_object_lock.py; 743 passed at f632880"
+    }
   ],
   "scope_creep": [],
   "regressions": [],
   "edge_cases": [
-    {"description": "Empty object ranged read (InvalidRange) treated as empty text", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_read.py:308-312"},
-    {"description": "Truncation never splits a multi-byte UTF-8 character", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_read.py:120-130"},
-    {"description": "object_delete_many refuses an empty prefix and caps keys/max_keys", "addressed": true, "evidence": "src/wasabi_mcp/tools/objects_write.py:222-231"},
-    {"description": "Guards (require_writable / require_confirmed / expires and max_items validation) run before any network call", "addressed": true, "evidence": "src/wasabi_mcp/tools/transfer.py:86-87,117-118; src/wasabi_mcp/tools/objects_write.py:96-102"},
-    {"description": "presign_get_for_prefix stopping at max_items mid-page resumes exactly via StartAfter", "addressed": true, "evidence": "src/wasabi_mcp/tools/transfer.py:135-153; tests/tools/test_transfer.py:92-110"},
-    {"description": "presign_get_for_prefix has no scan cap: a rare suffix under a large prefix lists without bound in one call", "addressed": false, "evidence": "src/wasabi_mcp/tools/transfer.py:125"},
-    {"description": "object_search treats naive modified_after/before as local time, while object_lock treats naive times as UTC", "addressed": false, "evidence": "src/wasabi_mcp/tools/objects_read.py:140"},
-    {"description": "object_metadata_update (MetadataDirective=REPLACE) drops Content-Disposition, Content-Encoding and Expires that it doesn't carry over", "addressed": false, "evidence": "src/wasabi_mcp/tools/objects_write.py:306-318"}
+    {
+      "description": "Empty object ranged read (InvalidRange) treated as empty text",
+      "addressed": true,
+      "evidence": "src/wasabi_mcp/tools/objects_read.py:308-312"
+    },
+    {
+      "description": "Truncation never splits a multi-byte UTF-8 character",
+      "addressed": true,
+      "evidence": "src/wasabi_mcp/tools/objects_read.py:120-130"
+    },
+    {
+      "description": "object_delete_many refuses an empty prefix and caps keys/max_keys",
+      "addressed": true,
+      "evidence": "src/wasabi_mcp/tools/objects_write.py:222-231"
+    },
+    {
+      "description": "Guards (require_writable / require_confirmed / expires and max_items validation) run before any network call",
+      "addressed": true,
+      "evidence": "src/wasabi_mcp/tools/transfer.py:86-87,117-118; src/wasabi_mcp/tools/objects_write.py:96-102"
+    },
+    {
+      "description": "presign_get_for_prefix stopping at max_items mid-page resumes exactly via StartAfter",
+      "addressed": true,
+      "evidence": "src/wasabi_mcp/tools/transfer.py:135-153; tests/tools/test_transfer.py:92-110"
+    },
+    {
+      "description": "presign_get_for_prefix has no scan cap: a rare suffix under a large prefix lists without bound in one call",
+      "addressed": false,
+      "evidence": "src/wasabi_mcp/tools/transfer.py:125"
+    },
+    {
+      "description": "object_search treats naive modified_after/before as local time, while object_lock treats naive times as UTC",
+      "addressed": false,
+      "evidence": "src/wasabi_mcp/tools/objects_read.py:140"
+    },
+    {
+      "description": "object_metadata_update (MetadataDirective=REPLACE) drops Content-Disposition, Content-Encoding and Expires that it doesn't carry over",
+      "addressed": false,
+      "evidence": "src/wasabi_mcp/tools/objects_write.py:306-318"
+    }
   ]
 }
